@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 # Obsidian Vault
-# .obsidian/
+.obsidian/
 # .obsidian-vault/
 # .obsidian-sync/
 # .obsidian-sync-vault/
