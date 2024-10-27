@@ -8,8 +8,8 @@ This repository contains all code, documentation, and resources for my master's 
 
 - [Overview](#overview)
 - [Repository Structure](#repository-structure)
-%%-  [Installation](#installation)
-- [Usage](#usage) %%
+-  [Installation](#installation)
+- [Usage](#usage)
 - [Project Stages](#project-stages)
 - [Branching Strategy](#branching-strategy)
 - [Contributing](#contributing)
@@ -32,30 +32,11 @@ The repository is organized to manage various phases of the thesis work:
 ├── thesis_document/          # LaTeX files and documents for thesis writing 
 └── requirements.txt          # Dependencies for the project`
 ```
-%%
+
 ## Installation
 
-Clone the repository and install required packages.
-
-```bash
-git clone https://github.com/yourusername/thesis-ai-content-moderation.git 
-cd thesis-ai-content-moderation 
-pip install -r requirements.txt`
-```
 ## Usage
 
-### Running Model Training Scripts
-
-To train a model, navigate to the `code/` directory and run the corresponding script for the model:
-
-```bash
-python code/image_moderation/train_image_moderation.py --dataset_path datasets/image_dataset`
-```
- 
-### Jupyter Notebooks
-
-Notebooks for experiments are in `experiments/`. Open them directly in Jupyter for detailed testing and analysis.
-%%
 ## Project Stages
 
 This project includes the following stages:
