@@ -1,0 +1,2 @@
+# Design and Application of an AI‐Based Text Content Moderation System
+Site web: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=ai+models+for+content+moderation&btnG=#d=gs_qabs&t=1729185623537&u=%23p%3D_9p7FgI-IZAJ

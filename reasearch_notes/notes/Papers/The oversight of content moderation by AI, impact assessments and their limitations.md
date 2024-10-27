@@ -1,0 +1,1 @@
+Site web: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=ai+content+moderation&btnG=#d=gs_qabs&t=1729185541018&u=%23p%3DwDNEcoiHL7EJ

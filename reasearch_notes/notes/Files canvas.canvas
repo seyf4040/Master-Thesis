@@ -1,0 +1,24 @@
+{
+	"nodes":[
+		{"id":"11b5953d0fbef164","type":"file","file":"Papers/A review of standard text classification practices for multi-label toxicity identification of online content.md","x":-118,"y":348,"width":400,"height":400},
+		{"id":"38fd7410a7fc009e","type":"file","file":"Papers/The oversight of content moderation by AI, impact assessments and their limitations.md","x":772,"y":793,"width":400,"height":400},
+		{"id":"aabe67c9719f4883","type":"file","file":"Papers/Comparison of deep learning models and various text pre-processing techniques for the toxic comments classification.md","x":-122,"y":793,"width":400,"height":400},
+		{"id":"294e00d721d73f29","type":"file","file":"Papers/Content moderation, AI, and the question of scale.md","x":327,"y":793,"width":400,"height":400},
+		{"id":"71e3c2510f250a33","type":"file","file":"Papers/Shieldgemma, Generative ai content moderation based on gemma.md","x":-118,"y":1240,"width":400,"height":400},
+		{"id":"eea15e0fa20a976a","type":"file","file":"Papers/Text classification using machine learning techniques..md","x":327,"y":1240,"width":400,"height":400},
+		{"id":"8316aee5fb92f5c5","type":"file","file":"Papers/Transfer learning for text classification.md","x":772,"y":1240,"width":400,"height":400},
+		{"id":"8dd195a58f839f4e","type":"file","file":"Papers/Real-Time Content Moderation Using Artificial Intelligence and Machine Learning.md","x":327,"y":348,"width":400,"height":400},
+		{"id":"d5ca6a84cca5ddf7","type":"file","file":"Papers/OpenAI content moderation API.md","x":772,"y":348,"width":400,"height":400},
+		{"id":"3e221a6b59807a09","type":"file","file":"Papers/Learning to Defer in Content Moderation, The Human-AI Interplay.md","x":1220,"y":793,"width":400,"height":400},
+		{"id":"08295ffc2240bf39","type":"file","file":"Papers/The Use of AI in Online Content Moderation.md","x":1220,"y":348,"width":400,"height":400},
+		{"id":"d290421dfa60984f","type":"file","file":"Papers/From Machine Learning to Explainable AI.md","x":1220,"y":1240,"width":400,"height":400},
+		{"id":"8d88c669020fb02e","type":"file","file":"Papers/Design and Application of an AI‐Based Text Content Moderation System.md","x":1660,"y":348,"width":400,"height":400},
+		{"id":"e243a566e11d4fa2","type":"file","file":"Papers/Online content moderation, regulatory challenges and the unique status of media content.md","x":1660,"y":793,"width":400,"height":400},
+		{"id":"0b93dd210c7d774c","type":"file","file":"Papers/Multilingual content moderation, a case study on Reddit.md","x":1660,"y":1240,"width":400,"height":400},
+		{"id":"b20d5513d063ae99","type":"file","file":"KoalaAI Text Moderation.md","x":-118,"y":-120,"width":400,"height":400},
+		{"id":"b885c57df86f35ee","type":"file","file":"EthicalEye.md","x":327,"y":-120,"width":400,"height":400},
+		{"id":"fb842c5ffc54fe1e","type":"file","file":"Master Thesis AI Content Moderation.md","x":-122,"y":-720,"width":400,"height":400},
+		{"id":"ffecdf471e1e3c9e","x":327,"y":-720,"width":400,"height":400,"type":"file","file":"Reading tracker.md"}
+	],
+	"edges":[]
+}

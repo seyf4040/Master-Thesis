@@ -1,0 +1,1 @@
+Site web: https://www.researchgate.net/publication/343798653_Content_moderation_AI_and_the_question_of_scale
