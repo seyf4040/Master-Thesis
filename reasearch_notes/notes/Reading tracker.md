@@ -22,11 +22,12 @@ kanban-plugin: board
 
 - [ ] [[Design and Application of an AI‐Based Text Content Moderation System]]
 - [ ] [[The Use of AI in Online Content Moderation]]
-- [ ] [[OpenAI content moderation API]]
+- [ ] [[Perspective API]]
 
 
 ## Done
 
+- [ ] [[OpenAI content moderation API]]
 - [ ] [[Real-Time Content Moderation Using Artificial Intelligence and Machine Learning]]
 - [ ] [[A review of standard text classification practices for multi-label toxicity identification of online content]]
 
