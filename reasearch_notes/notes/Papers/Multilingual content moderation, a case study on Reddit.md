@@ -1,1 +1,2 @@
 Site web: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=multi+lingual+content+moderation&btnG=#d=gs_qabs&t=1729185811909&u=%23p%3DsrWR4g9v4bEJ
+GitHub: https://github.com/mye1225/multilingual_content_mod
