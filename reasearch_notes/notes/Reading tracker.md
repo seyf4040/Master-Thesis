@@ -6,8 +6,8 @@ kanban-plugin: board
 
 ## To Do
 
-- [ ] [[Perspective API]]
-- [ ] [[Text classification using machine learning techniques.]]
+- [ ] [[Do You Really Want to Hurt Me Predicting Abusive Swearing in Social Media]]
+- [ ] [[Predicting the Type and Target of Offensive Posts in Social Media]]
 - [ ] [[Comparison of deep learning models and various text pre-processing techniques for the toxic comments classification]]
 - [ ] [[Content moderation, AI, and the question of scale]]
 - [ ] [[Learning to Defer in Content Moderation, The Human-AI Interplay]]
@@ -18,18 +18,20 @@ kanban-plugin: board
 - [ ] [[From Machine Learning to Explainable AI]]
 
 
-## Pending
+## Pending (3)
+
+- [ ] [[Text classification using machine learning techniques]]
+- [ ] [[The Use of AI in Online Content Moderation]]
+
+
+## In Progress (1)
 
 - [ ] [[Multilingual content moderation, a case study on Reddit]]
 
 
-## In Progress (3)
-
-- [ ] [[The Use of AI in Online Content Moderation]]
-
-
 ## Done
 
+- [ ] [[Perspective API]]
 - [ ] [[Design and Application of an AI‐Based Text Content Moderation System]]
 - [ ] [[OpenAI content moderation API]]
 - [ ] [[Real-Time Content Moderation Using Artificial Intelligence and Machine Learning]]
