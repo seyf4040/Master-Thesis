@@ -37,7 +37,7 @@ Licence: MIT
 | violence/graphic | `V2` | Violent content that depicts death, violence, or serious physical injury in extreme graphic detail. |
 
 ## Koala Moderation
-
+https://huggingface.co/datasets/KoalaAI/Text-Moderation-v2-small
 ### **Data Instances**
 
 A sample from this dataset looks as follows:
