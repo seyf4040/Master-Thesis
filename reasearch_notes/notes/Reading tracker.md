@@ -20,17 +20,17 @@ kanban-plugin: board
 
 ## Pending (3)
 
-- [ ] [[Text classification using machine learning techniques]]
 - [ ] [[The Use of AI in Online Content Moderation]]
 
 
 ## In Progress (1)
 
-- [ ] [[Multilingual content moderation, a case study on Reddit]]
+- [ ] [[Text classification using machine learning techniques]]
 
 
 ## Done
 
+- [ ] [[Multilingual content moderation, a case study on Reddit]]
 - [ ] [[Perspective API]]
 - [ ] [[Design and Application of an AI‐Based Text Content Moderation System]]
 - [ ] [[OpenAI content moderation API]]
