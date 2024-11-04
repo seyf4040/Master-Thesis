@@ -4,14 +4,16 @@
 [[EthicalEye]]
 [[KoalaAI Text Moderation]]
 
-## Table Of Content
-- [[#Definitions|Definitions]]
-- [[#Taxonomy/Moderation rules|Taxonomy/Moderation rules]]
-- [[#Datasets|Datasets]]
-- [[#Model|Model]]
-	- [[#Model#Architecture|Architecture]]
-	- [[#Model#Training methods/parameters|Training methods/parameters]]
-	- [[#Model#Other feature|Other feature]]
+**Table of Content**
+- [Definitions](#definitions)
+- [Taxonomy/Moderation rules](#taxonomymoderation-rules)
+- [Datasets](#datasets)
+- [Model](#model)
+	- [Architecture](#architecture)
+	- [Training methods/parameters](#training-methodsparameters)
+	- [Other feature](#other-feature)
+- [API](#api)
+
 
 ## Definitions
 Are we only targeting offensive, toxic, abusive language or are we trying to replicate a human moderator that would also flag self-promoting advertisements, spamming and off-topic comments.
@@ -59,3 +61,8 @@ learning rate?
 - **Active Learning**
 - Explainablity?
 - 
+
+## API
+- OpenAI moderation [API](https://openai.com/index/new-and-improved-content-moderation-tooling/?form=MG0AV3)
+- Perspective [API](https://perspectiveapi.com/)
+Both are free to use for the time being (01/11/24).
