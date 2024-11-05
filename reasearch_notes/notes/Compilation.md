@@ -1,19 +1,19 @@
-{{include "Master Thesis AI Content Moderation.md" }}
+![[Master Thesis AI Content Moderation]]
 
-{{include "EthicalEye.md"}}
+![[EthicalEye]]
 
-{{include "KoalaAI Text Moderation.md"}}
+![[KoalaAI Text Moderation]]
 
-{{include "OpenAI content moderation API.md"}}
+![[OpenAI content moderation API]]
 
-{{include "Multilingual content moderation, a case study on Reddit.md"}}
+![[Multilingual content moderation, a case study on Reddit]]
 
-{{include "Perspective API.md"}}
+![[Perspective API]]
 
-{{include "Text classification using machine learning techniques.md"}}
+![[Text classification using machine learning techniques]]
 
-{{include "Design and Application of an AI‐Based Text Content Moderation System.md"}}
+![[Design and Application of an AI‐Based Text Content Moderation System]]
 
-{{include "Real-Time Content Moderation Using Artificial Intelligence and Machine Learning.md"}}
+![[Real-Time Content Moderation Using Artificial Intelligence and Machine Learning]]
 
-{{include "A review of standard text classification practices for multi-label toxicity identification of online content.md"}}
+![[A review of standard text classification practices for multi-label toxicity identification of online content]]
