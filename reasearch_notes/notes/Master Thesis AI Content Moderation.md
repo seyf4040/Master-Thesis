@@ -59,7 +59,7 @@ learning rate?
 
 ### Other feature 
 - **Active Learning**
-- Explainablity?
+- Explainablity? 
 - 
 
 ## API
