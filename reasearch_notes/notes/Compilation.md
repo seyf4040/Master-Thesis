@@ -131,9 +131,21 @@ Are we only targeting offensive, toxic, abusive language or are we trying to rep
 
 ## Taxonomy/Moderation rules
 Categorisation of undesired content:
-- 
+- Ok content: content that is fine to keep, doesn't go against any rules or policy.
+- Undesired content: 
+	- sexual content;
+	- harassement;
+	- violent content;
+	- promotion/self-promotion;
+	- Off topic messages;
 
 ## Datasets
+Training data influences a lot performance of the model, the more the training data distribution is different from the real data distribution, the poorer the accuracy will be.
+Active learning is a necessity to adapt to any new types of undesired content and/or any work arounds found be users.
+
+Is it possible to translate the whole dataset in french before training?
+Is it possible to train in English and translate sample before evaluating if the probability of it being toxic?
+
 Training data, data quality?
 Availability of production data?
 
@@ -151,6 +163,8 @@ Some datasets I stumbled upon during the initial stages of my research
 - TweetEval
 - 
 ## Model
+Possible to start with as base for feature extraction a pre-trained model.
+
 Need more research on text analysis, (sentiment, semantic, lexical, syntax).
 ### Architecture
 NLP?
@@ -761,6 +775,20 @@ We want to replicate human moderation.
 
 ## To research further
 Papier plus récents ? (Chercher les paper qui cite les papier que j'ai déjà lu)
+```
+- Adapting Large Language Models for Content Moderation: Pitfalls in Data Engineering and Supervised Fine-tuning (2024)
+- Integrating Content Moderation Systems with Large Language Models (2024)
+- Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification (2023)
+- Toxicity Detection is NOT all you Need: Measuring the Gaps to Supporting Volunteer Content Moderators (2024)
+- Content Moderation System Using Machine Learning Techniques (2023)
+- Artificial intelligence as a tool in social media content moderation (2023)
+```
+
+Image moderation
+```
+- On-Device Content Moderation (2021)
+- Artificial intelligence as a tool in social media content moderation (2023)
+```
 
 Est ce que les diff modèles sont évaluer sur plusieurs dataset?
 Est ce qu'on a du code réutilisable. 
