@@ -5,4 +5,4 @@ Pretrained agent primarily intended to be used as a tool to flag or block users 
 
 License: Apache 2.0
 
-Techniques: text classification, toxicity analysis, and cross-lingual NLP
+Techniques: text classification, toxicity analysis, and cross-lingual NLP.

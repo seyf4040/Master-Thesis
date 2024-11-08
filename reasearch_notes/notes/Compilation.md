@@ -1,3 +1,111 @@
+**Table of Content**
+
+- [Master Thesis AI Content Moderation](#master-thesis-ai-content-moderation)
+	- [Definitions](#definitions)
+	- [Taxonomy/Moderation rules](#taxonomymoderation-rules)
+	- [Datasets](#datasets)
+	- [Model](#model)
+		- [Architecture](#architecture)
+		- [Training methods/parameters](#training-methodsparameters)
+		- [Other feature](#other-feature)
+	- [API](#api)
+- [EthicalEye](#ethicaleye)
+- [KoalaAI Text Moderation](#koalaai-text-moderation)
+	- [Databases](#databases)
+		- [OpenAI Moderation API Evaluation](#openai-moderation-api-evaluation)
+		- [Koala Moderation](#koala-moderation)
+			- [**Data Instances**](#data-instances)
+			- [**Dataset Fields**](#dataset-fields)
+- [OpenAI content moderation API](#openai-content-moderation-api)
+	- [OpenAI website](#openai-website)
+		- [Classification categories](#classification-categories)
+	- [Paper](#paper)
+		- [Introduction](#introduction)
+		- [Taxonomy](#taxonomy)
+		- [Methods](#methods)
+			- [Data selection and active learning](#data-selection-and-active-learning)
+			- [Labeling and quality control](#labeling-and-quality-control)
+			- [Synthetic data](#synthetic-data)
+			- [Domain adversarial training](#domain-adversarial-training)
+			- [Model probing](#model-probing)
+		- [Experiment results](#experiment-results)
+			- [Model architecture and training](#model-architecture-and-training)
+			- [Model performance](#model-performance)
+			- [Active learning experiments](#active-learning-experiments)
+			- [Domain Adversarial training experiments](#domain-adversarial-training-experiments)
+	- [ChatGPT's review](#chatgpts-review)
+		- [Summary](#summary)
+		- [Strengths](#strengths)
+		- [Weaknesses](#weaknesses)
+		- [Minor Comments](#minor-comments)
+		- [Recommendation](#recommendation)
+- [Multilingual content moderation, a case study on Reddit](#multilingual-content-moderation-a-case-study-on-reddit)
+	- [Introduction](#introduction)
+	- [Data](#data)
+	- [Experiment results](#experiment-results)
+- [Perspective API](#perspective-api)
+	- [Uses](#uses)
+	- [Definition](#definition)
+	- [Taxonomy](#taxonomy)
+	- [Developer](#developer)
+	- [License](#license)
+	- [Price & Quota](#price--quota)
+- [Text classification using machine learning techniques.](#text-classification-using-machine-learning-techniques)
+	- [Introduction](#introduction)
+	- [Vector space document representation](#vector-space-document-representation)
+	- [Feature selection](#feature-selection)
+	- [Feature transformation](#feature-transformation)
+	- [Machine learning methods](#machine-learning-methods)
+	- [Evaluation](#evaluation)
+- [Design and Application of an AI‐Based Text Content Moderation System](#design-and-application-of-an-ai%E2%80%90based-text-content-moderation-system)
+	- [Introduction](#introduction)
+	- [Architecture design of the AI-base TCM system](#architecture-design-of-the-ai-base-tcm-system)
+	- [Dataset](#dataset)
+	- [Experiments](#experiments)
+	- [ChatGPT's review](#chatgpts-review)
+		- [Summary](#summary)
+		- [Strengths](#strengths)
+		- [Weaknesses](#weaknesses)
+		- [Minor Comments](#minor-comments)
+		- [Recommendation](#recommendation)
+- [Real-Time Content Moderation Using Artificial Intelligence and Machine Learning](#real-time-content-moderation-using-artificial-intelligence-and-machine-learning)
+	- [Introduction](#introduction)
+	- [Techniques](#techniques)
+		- [Natural Language Processing](#natural-language-processing)
+		- [Computer vision](#computer-vision)
+		- [Behavioural analysis](#behavioural-analysis)
+	- [Challenges & Ethical considerations](#challenges--ethical-considerations)
+	- [ChatGPT's review](#chatgpts-review)
+		- [**Summary**](#summary)
+		- [**Strengths**](#strengths)
+		- [**Weaknesses**](#weaknesses)
+		- [**Minor Comments**](#minor-comments)
+		- [**Recommendation**](#recommendation)
+- [A review of standard text classification practices for multi-label toxicity identification of online content](#a-review-of-standard-text-classification-practices-for-multi-label-toxicity-identification-of-online-content)
+	- [Introduction](#introduction)
+	- [Dataset](#dataset)
+	- [Text Representation](#text-representation)
+	- [Neural Network](#neural-network)
+	- [Stacking classifiers](#stacking-classifiers)
+	- [Semi supervised Training](#semi-supervised-training)
+	- [Conclusion](#conclusion)
+	- [Interesting to note](#interesting-to-note)
+	- [Chat GPT review](#chat-gpt-review)
+		- [**Summary**](#summary)
+		- [**Strengths**](#strengths)
+		- [**Weaknesses**](#weaknesses)
+		- [**Minor Comments**](#minor-comments)
+		- [**Recommendation**](#recommendation)
+- [05/11/24 Meeting notes](#051124-meeting-notes)
+	- [Discussed topics](#discussed-topics)
+	- [To research further](#to-research-further)
+	- [Keep in mind for future](#keep-in-mind-for-future)
+- [19/11/24 Meeting notes](#191124-meeting-notes)
+	- [Topics to discuss](#topics-to-discuss)
+	- [Discussed in meeting](#discussed-in-meeting)
+
+---
+
 # Master Thesis AI Content Moderation
 
 [[Reading tracker]]
@@ -76,7 +184,8 @@ Pretrained agent primarily intended to be used as a tool to flag or block users 
 
 License: Apache 2.0
 
-Techniques: text classification, toxicity analysis, and cross-lingual NLP
+Techniques: text classification, toxicity analysis, and cross-lingual NLP.
+
 ---
 
 # KoalaAI Text Moderation
@@ -98,9 +207,9 @@ Text classification model split in the following categories:
 
 Licence: CodeML OpenRAIL-M 0.1 license, which is a variant of the BigCode OpenRAIL-M license.
 
-# Databases
+## Databases
 
-## OpenAI Moderation API Evaluation
+### OpenAI Moderation API Evaluation
 
 [https://huggingface.co/datasets/mmathys/openai-moderation-api-evaluation](https://huggingface.co/datasets/mmathys/openai-moderation-api-evaluation)
 
@@ -117,9 +226,9 @@ Licence: MIT
 | hate/threatening | `H2` | Hateful content that also includes violence or serious harm towards the targeted group. |
 | violence/graphic | `V2` | Violent content that depicts death, violence, or serious physical injury in extreme graphic detail. |
 
-## Koala Moderation
+### Koala Moderation
 https://huggingface.co/datasets/KoalaAI/Text-Moderation-v2-small
-### **Data Instances**
+#### **Data Instances**
 
 A sample from this dataset looks as follows:
 
@@ -136,7 +245,7 @@ A sample from this dataset looks as follows:
 ]
 ```
 
-### **Dataset Fields**
+#### **Dataset Fields**
 
 The dataset has the following fields (also called "features"):
 
@@ -191,7 +300,7 @@ For success in building such a system:
 - Use public datasets with care;
 - Imbalanced training data can lead to incorrect generalisation;
 - Mistakes in data will happen and will need to be managed.
-## Taxonomy
+### Taxonomy
 Depends on context.
 5 top level categories with sub categories to achieve a spectrum of categorisation.
 - S: Sexual content
@@ -219,27 +328,27 @@ Depends on context.
 
 Model trained to detect S, H, V, SH, HR, S3, H2, V2.
 
-## Methods
-### Data selection and active learning
+### Methods
+#### Data selection and active learning
 To ensure good performance in context, add one's own data to training set. 
 
-### Labeling and quality control
+#### Labeling and quality control
 Assure consistency in labels, remove subjectivity as much as possible.
 
-### Synthetic data
+#### Synthetic data
 Add synthetic data to rare categories to improve model performance or to alleviate bias. Also useful to for cold start, train model when no labelled real data available.
 
-### Domain adversarial training
+#### Domain adversarial training
 Feature extractor is a transformer encoder
 
-### Model probing
+#### Model probing
 Ensure model is classifying based on correct features. Key tokens probing, human red-teaming.
 
-## Experiment results
-### Model architecture and training
+### Experiment results
+#### Model architecture and training
 Transformer decoder where last linear layer replaced with 8 MLP heads (one for each categories). Initialised with pre-trained GPT model then fine tuned.
 
-### Model performance
+#### Model performance
 Test set not disclosed for privacy reasons. Small 1680 sample public data dataset is shared.
 Model is compared with Perspective API, on following datasets:
 - public dataset
@@ -249,10 +358,10 @@ Model is compared with Perspective API, on following datasets:
 - TweetEval
 Each model is better with the taxonomy they were trained for. But OpenAI model is better on other datasets
 
-### Active learning experiments
+#### Active learning experiments
 Captures undesired content 10+ times more effectively.
 
-### Domain Adversarial training experiments
+#### Domain Adversarial training experiments
 Test on three stages of project
 - beginning stages: labelled public data and unlabelled production data
 - middle stages: added curated synthetic data
@@ -284,6 +393,7 @@ This paper, authored by a team from OpenAI, proposes a comprehensive approach to
 
 ### Recommendation
 The paper presents a well-rounded solution to a pressing real-world problem—content moderation. The techniques used, especially the combination of active learning and domain adversarial training, showcase a sophisticated understanding of the challenges in detecting undesired content. However, improvements are needed to address persistent bias issues and to enhance multilingual capabilities. I recommend **acceptance with minor revisions**, focusing on further refining the bias mitigation strategies and expanding support for non-English content.
+
 ---
 
 # Multilingual content moderation, a case study on Reddit
@@ -330,6 +440,7 @@ MLLM might be better solution.
 
 Future is in a combination of OLI and moderation task.
 Need to find a way to be more robust against label noise (incorrect label).
+
 ---
 
 # Perspective API
@@ -365,6 +476,7 @@ We open source experiments, tools, and research data that explore ways to combat
 ## Price & Quota
 Currently free, may be a fee in the future if QPS (queries per second) increases.
 Limited to 1 query per second, possible to request quota increase.
+
 ---
 
 # Text classification using machine learning techniques.
@@ -435,7 +547,7 @@ with $\beta$ set to 1 for equal importance between precision and recall.
 # Design and Application of an AI‐Based Text Content Moderation System
 Site web: https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2576535
 
-# Introduction
+## Introduction
 Text content moderation (TCM), for online educational platform. Keyword matching moderation ignores context and thus raises a lot of false positives.
 
 ## Architecture design of the AI-base TCM system
@@ -465,32 +577,31 @@ contains about 360k samples. available upon request to authors.
 Too light, need bigger test/validation dataset.
 
 ## ChatGPT's review
-# Detailed Review of "Design and Application of an AI-Based Text Content Moderation System"
-
-## Summary
+### Summary
 The paper explores the development and deployment of an AI-based Text Content Moderation (TCM) system. The system leverages cloud computing and machine learning models to moderate text in real-time, particularly for an educational platform. It combines rule-based and AI-driven techniques to improve the accuracy and efficiency of content filtering, reducing reliance on manual moderation. The authors provide a technical breakdown of the system's architecture, including its modular layers, reliance on Tencent Cloud infrastructure, and implementation of the FastText model for text classification.
 
-## Strengths
+### Strengths
 - **Relevance and Application**: The paper addresses a pressing need for effective moderation in online educational platforms, focusing on reducing harmful or disruptive content.
 - **Technical Detail**: A thorough explanation of the system’s architecture and modular breakdown (hardware, middleware, algorithm service, and application service layers) supports a clear understanding of its functionality.
 - **Efficient Use of AI**: The integration of FastText and cloud-based resources demonstrates the system’s ability to handle high text volumes with good accuracy (98.3% in testing).
 - **Cloud-Based Scalability**: The use of Tencent Cloud services enables flexible scaling to meet various computational demands, suggesting that the system can handle increased workloads.
 - **Continuous Learning and Adaptation**: The authors implemented mechanisms for the model to update its sample library based on flagged or moderated content, which will improve its adaptability to emerging patterns in harmful content.
 
-## Weaknesses
+### Weaknesses
 - **Bias in Text Classification**: Although FastText performs well with Chinese text, the study does not address bias in handling nuanced or sensitive content, which can lead to inappropriate moderation.
 - **Lack of Comparative Analysis**: There is no comparative analysis with other TCM systems, such as Google’s Perspective API, to benchmark the model’s performance across various content moderation needs.
 - **Limited Contextualization of Results**: While the accuracy rate is noted, the paper lacks a breakdown of performance across content types (e.g., spam, harassment, misinformation) or false positive/negative rates for each.
 - **User Experience Consideration**: The paper does not address user feedback or experience after moderation interventions, which is vital in educational contexts where censorship can affect open dialogue.
 - **Limited Discussion of Multilingual Support**: Since the system operates primarily in Chinese, its broader applicability to multilingual educational environments is unclear.
 
-## Minor Comments
+### Minor Comments
 - **Figures and Diagrams**: Figures (e.g., Figures 1 and 2) detailing the system’s architecture would benefit from more descriptive captions to assist readers in following complex processes.
 - **Terminology Consistency**: Terms like “AI-based moderation” and “intelligent moderation” are used interchangeably but could be defined to clarify specific methods or approaches within the system.
 - **Future Directions**: While the conclusion mentions the potential of the TCM system in education, a more detailed roadmap for future improvements or upgrades would strengthen the paper’s relevance.
 
-## Recommendation
+### Recommendation
 The paper presents a well-designed and technically sound AI-based content moderation system. It offers practical applications and a strong use of cloud-based resources, making it suitable for educational settings. However, the paper requires some minor revisions, specifically to address bias issues, expand on multilingual capabilities, and provide a comparative analysis. My recommendation is **acceptance with minor revisions** to enhance the study’s applicability and depth.
+
 ---
 
 # Real-Time Content Moderation Using Artificial Intelligence and Machine Learning
@@ -542,6 +653,7 @@ This paper investigates real-time content moderation using AI and machine learni
 
 ### **Recommendation**  
 While this paper provides a strong overview of the tools available for real-time content moderation, it needs to address the ethical and operational limitations of these tools more robustly. I recommend **minor revisions** with an emphasis on strengthening the discussion on the trade-offs between different techniques and the practical implications for platforms at scale.
+
 ---
 
 # A review of standard text classification practices for multi-label toxicity identification of online content
@@ -636,5 +748,36 @@ The paper examines various text classification methods for detecting multi-label
 
 ### **Recommendation**  
 The paper provides valuable insights into toxicity detection, with solid methodological comparisons. However, it requires revisions to address ethical considerations, model interpretability, and real-world applicability before it can be recommended for publication.
+
+
+
+---
+
+# 05/11/24 Meeting notes
+
+## Discussed topics
+We want to replicate human moderation.
+**Moderation**: Flagging and removal of content based on predefined rules. Removed content can be of many types: undesired content, spam, off topic, promotion or self promotion.
+
+## To research further
+Papier plus récents ? (Chercher les paper qui cite les papier que j'ai déjà lu)
+
+Est ce que les diff modèles sont évaluer sur plusieurs dataset?
+Est ce qu'on a du code réutilisable. 
+--> Phase evaluation: tout réimplémenter et tester pour choisir sur sur quoi on part.
+Bien évaluer? Critique sur l'évaluation? (plus généralement sur le papier)
+
+Modèle de traduction ? Est il réaliste de traduire des dataset complets ?
+
+## Keep in mind for future
+Penser a comment On va aborder le sujets, qu'est ce qui est le plus prometteur ?
+
+---
+
+# 19/11/24 Meeting notes
+## Topics to discuss
+## Discussed in meeting
+
+
 ---
 

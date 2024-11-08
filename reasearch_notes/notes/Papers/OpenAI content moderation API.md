@@ -41,7 +41,7 @@ For success in building such a system:
 - Use public datasets with care;
 - Imbalanced training data can lead to incorrect generalisation;
 - Mistakes in data will happen and will need to be managed.
-## Taxonomy
+### Taxonomy
 Depends on context.
 5 top level categories with sub categories to achieve a spectrum of categorisation.
 - S: Sexual content
@@ -69,27 +69,27 @@ Depends on context.
 
 Model trained to detect S, H, V, SH, HR, S3, H2, V2.
 
-## Methods
-### Data selection and active learning
+### Methods
+#### Data selection and active learning
 To ensure good performance in context, add one's own data to training set. 
 
-### Labeling and quality control
+#### Labeling and quality control
 Assure consistency in labels, remove subjectivity as much as possible.
 
-### Synthetic data
+#### Synthetic data
 Add synthetic data to rare categories to improve model performance or to alleviate bias. Also useful to for cold start, train model when no labelled real data available.
 
-### Domain adversarial training
+#### Domain adversarial training
 Feature extractor is a transformer encoder
 
-### Model probing
+#### Model probing
 Ensure model is classifying based on correct features. Key tokens probing, human red-teaming.
 
-## Experiment results
-### Model architecture and training
+### Experiment results
+#### Model architecture and training
 Transformer decoder where last linear layer replaced with 8 MLP heads (one for each categories). Initialised with pre-trained GPT model then fine tuned.
 
-### Model performance
+#### Model performance
 Test set not disclosed for privacy reasons. Small 1680 sample public data dataset is shared.
 Model is compared with Perspective API, on following datasets:
 - public dataset
@@ -99,10 +99,10 @@ Model is compared with Perspective API, on following datasets:
 - TweetEval
 Each model is better with the taxonomy they were trained for. But OpenAI model is better on other datasets
 
-### Active learning experiments
+#### Active learning experiments
 Captures undesired content 10+ times more effectively.
 
-### Domain Adversarial training experiments
+#### Domain Adversarial training experiments
 Test on three stages of project
 - beginning stages: labelled public data and unlabelled production data
 - middle stages: added curated synthetic data

@@ -17,9 +17,9 @@ Text classification model split in the following categories:
 
 Licence: CodeML OpenRAIL-M 0.1 license, which is a variant of the BigCode OpenRAIL-M license.
 
-# Databases
+## Databases
 
-## OpenAI Moderation API Evaluation
+### OpenAI Moderation API Evaluation
 
 [https://huggingface.co/datasets/mmathys/openai-moderation-api-evaluation](https://huggingface.co/datasets/mmathys/openai-moderation-api-evaluation)
 
@@ -36,9 +36,9 @@ Licence: MIT
 | hate/threatening | `H2` | Hateful content that also includes violence or serious harm towards the targeted group. |
 | violence/graphic | `V2` | Violent content that depicts death, violence, or serious physical injury in extreme graphic detail. |
 
-## Koala Moderation
+### Koala Moderation
 https://huggingface.co/datasets/KoalaAI/Text-Moderation-v2-small
-### **Data Instances**
+#### **Data Instances**
 
 A sample from this dataset looks as follows:
 
@@ -55,7 +55,7 @@ A sample from this dataset looks as follows:
 ]
 ```
 
-### **Dataset Fields**
+#### **Dataset Fields**
 
 The dataset has the following fields (also called "features"):
 
