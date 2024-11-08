@@ -23,9 +23,21 @@ Are we only targeting offensive, toxic, abusive language or are we trying to rep
 
 ## Taxonomy/Moderation rules
 Categorisation of undesired content:
-- 
+- Ok content: content that is fine to keep, doesn't go against any rules or policy.
+- Undesired content: 
+	- sexual content;
+	- harassement;
+	- violent content;
+	- promotion/self-promotion;
+	- Off topic messages;
 
 ## Datasets
+Training data influences a lot performance of the model, the more the training data distribution is different from the real data distribution, the poorer the accuracy will be.
+Active learning is a necessity to adapt to any new types of undesired content and/or any work arounds found be users.
+
+Is it possible to translate the whole dataset in french before training?
+Is it possible to train in English and translate sample before evaluating if the probability of it being toxic?
+
 Training data, data quality?
 Availability of production data?
 
@@ -43,6 +55,8 @@ Some datasets I stumbled upon during the initial stages of my research
 - TweetEval
 - 
 ## Model
+Possible to start with as base for feature extraction a pre-trained model.
+
 Need more research on text analysis, (sentiment, semantic, lexical, syntax).
 ### Architecture
 NLP?
