@@ -1044,7 +1044,10 @@ print(model.predict(padded))
 
 Approach by which a word is represented by a vector representing its inclination/closeness to certain categories.
 Example: 
-![Image from Stanford university illustrating simple example of word embedding](Assets/word-embedding.png)
+<!---
+![Illustration of simple example of word embedding](../Assets/word-embedding.png)
+--->
+<img src="../Assets/word-embedding.png" width="50%">
 Source: https://www.cs.cmu.edu/~dst/WordEmbeddingDemo/tutorial.html
 
 
@@ -1100,8 +1103,6 @@ Penser a comment On va aborder le sujets, qu'est ce qui est le plus prometteur ?
 ## 19/11/24 Meeting notes
 ### Topics to discuss
 ### Discussed in meeting
-
-
 
 
 ---
