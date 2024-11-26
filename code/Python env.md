@@ -19,3 +19,4 @@ packages to install:
 
 - tiktoken
 - sentencepiece
+- tabulate
