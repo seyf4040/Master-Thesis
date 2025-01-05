@@ -59,10 +59,10 @@ Possible to start with as base for feature extraction a pre-trained model.
 
 Need more research on text analysis, (sentiment, semantic, lexical, syntax).
 ### Architecture
-NLP?
-Transformer encoder/decoder?
-pre-trained? 
-GPT model?
+pre-trained >< trained from scratch
+NLP? (Transformer encoder/decoder?)
+LLM (GPT model?, LLAMA?)
+
 
 ### Training methods/parameters
 supervised learning
@@ -80,3 +80,13 @@ learning rate?
 - OpenAI moderation [API](https://openai.com/index/new-and-improved-content-moderation-tooling/?form=MG0AV3)
 - Perspective [API](https://perspectiveapi.com/)
 Both are free to use for the time being (01/11/24).
+
+
+## Limitation
+
+
+## Defining Rules for content moderation on the Shareish platform 
+
+<img src="../Assets/ChatGPT - Content Moderation Guidelines.png" width="50%">
+Rule number 5 is too restrictive, here is a test using ChatGPT to illustrate this:
+<img src="../Assets/ChatGPT - Content Moderation Agent.png" width="50%">
