@@ -193,9 +193,9 @@ Both are free to use for the time being (01/11/24).
 
 ### Defining Rules for content moderation on the Shareish platform 
 
-<img src="../Assets/'ChatGPT - Content Moderation Guidelines.png'" width="50%">
+<img src="../notes/Assets/ChatGPT - Content Moderation Guidelines.png" width="50%">
 Rule number 5 is too restrictive, here is a test using ChatGPT to illustrate this:
-<img src="../Assets/'ChatGPT - Content Moderation Agent.png'" width="50%">
+<img src="../notes/Assets/ChatGPT - Content Moderation Agent.png" width="50%">
 
 ---
 
@@ -1112,7 +1112,7 @@ Example:
 <!---
 ![Illustration of simple example of word embedding](../Assets/word-embedding.png)
 --->
-<img src="../Assets/word-embedding.png" width="50%">
+<img src="../notes/Assets/word-embedding.png" width="50%">
 Source: https://www.cs.cmu.edu/~dst/WordEmbeddingDemo/tutorial.html
 
 
@@ -1174,7 +1174,7 @@ Accuracy shouldn't be used alone but with precision and recall or F1 score.
 
 ### Most used metrics
 
-<img src="../Assets/Most used metrics per task.png" width="50%">
+<img src="../notes/Assets/Most used metrics per task.png" width="50%">
 
 For Classification
 - Accuracy;
