@@ -31,3 +31,7 @@ We open source experiments, tools, and research data that explore ways to combat
 ## Price & Quota
 Currently free, may be a fee in the future if QPS (queries per second) increases.
 Limited to 1 query per second, possible to request quota increase.
+
+
+## Overall
+Very useful for the definitions and taxonomy, the tool is also only accessible via API and code is not opensource. Works with a lot of languages including french.

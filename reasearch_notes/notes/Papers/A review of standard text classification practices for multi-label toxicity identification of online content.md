@@ -24,7 +24,8 @@ Wikimedia Toxicity dataset:
 
 State of the art for text classification ⇒ Deep learning (convolutional neural network
 
-## Dataset
+## Techniques
+### Data
 Labels: 
 - neutral
 - toxic
@@ -38,7 +39,7 @@ Data augmentation through translation to French, Dutch and Spanish before transl
 
 Punctuation and Word variations were removed and replaced by corresponding words. 
 
-## Text Representation
+### Text Representation
 Several representations used:
 - word tf-idf
 - char and word tf-idf
@@ -46,17 +47,19 @@ Several representations used:
 - average of Glove
 - average of 300D pre-trained fasttext
 
-## Neural Network
+### Neural Network
 Use of Bi-LSTM layers or Attention layers to act as text representation.
 Increases slightly AUC (area under the curve)
-## Stacking classifiers 
+### Stacking classifiers 
 Supervisor model (LGBM) trained to combine predictions of several classifiers.
 Slightly increases the AUC.
 
-## Semi supervised Training
+### Semi supervised Training
 Separate test set in 10 folds, train on train set+ 9 folds of test set, for test set use pseudo-labels (predictions of best model), test on 10th fold, experiment is repeated for all 10 folds. (bootstrap?)
 Slightly increases the AUC.
 
-## Interesting to note
+## Overall
 Language toxicity detection tool released with paper.
+Treats the problem as a NLP problem. Concept of Stacking classifiers is interesting but means there are more models to train.
+Only AUC reported, (without specifying the curve).
 
