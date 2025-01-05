@@ -109,28 +109,3 @@ Test on three stages of project
 - later stages: labelled production data
 Great impact on beginning stages, impact reduces gradually with advancement in the project. Still improves categories with less data but and slightly hurt performance in categories where no enough samples available.
 
-## ChatGPT's review
-### Summary
-This paper, authored by a team from OpenAI, proposes a comprehensive approach to developing a robust content moderation system for detecting undesired content in real-world applications. It addresses challenges like imbalanced data, subjective labeling, and cold start problems by employing techniques such as active learning, taxonomy design, and domain adversarial training. The paper demonstrates significant improvements in identifying undesired content, including hateful, violent, and self-harm-related text, outperforming off-the-shelf models in multiple categories.
-
-### Strengths
-- **Comprehensive Approach**: The paper presents a holistic framework combining taxonomy design, active learning, synthetic data generation, and domain adversarial training to create a robust content moderation system.
-- **Real-world Relevance**: It tackles the practical challenges of moderating real-world content by accounting for the complexities of taxonomy mismatches and distribution shifts between public datasets and production traffic.
-- **Active Learning Efficacy**: The use of active learning to capture rare categories significantly improves model performance by efficiently selecting samples, improving the system’s detection capabilities.
-- **Synthetic Data Usage**: The authors introduce creative approaches to generate synthetic data for cold-start problems and rare categories, which is critical in handling scenarios where real-world data is limited.
-- **Ethical Considerations**: The paper thoughtfully addresses the ethical implications of content moderation, including bias in training data, transparency, and the mental health of annotators.
-
-### Weaknesses
-- **Bias Mitigation**: Although the paper outlines strategies for bias mitigation, the results show that the issue of demographic bias, especially around racial and gender terms, persists. The model continues to show disproportionate results for specific demographic groups.
-- **Limited Multilingual Support**: The system currently focuses primarily on English content, with limited exploration into handling non-English languages, which may reduce its global applicability.
-- **Generalizability Concerns**: The domain adaptation strategy helps align the model to production data, but the results suggest that it struggles when domain discrepancies are large, as seen in categories with few public data samples.
-- **Dependence on Synthetic Data**: While synthetic data is useful in cold start and rare category scenarios, its over-reliance can introduce noise, which the authors acknowledge may hurt performance in some cases.
-- **Lack of Comparative Results**: The paper compares the proposed model to Perspective API but does not provide a detailed comparison with other state-of-the-art models in content moderation, leaving questions about its standing against leading alternatives.
-
-### Minor Comments
-- **Figures and Tables**: Some figures, such as Figure 1 (model training framework), lack sufficient explanation and context, which can make it difficult for readers to understand the flow and structure of the proposed system.
-- **Terminology and Clarity**: Certain sections, particularly those discussing the taxonomy structure, could benefit from clearer explanations of the classification system used for undesired content. More concrete examples would help clarify abstract concepts.
-- **Evaluation Dataset**: The paper reports on model performance using production traffic, but since this dataset is proprietary, there is limited transparency in evaluating the model against external benchmarks.
-
-### Recommendation
-The paper presents a well-rounded solution to a pressing real-world problem—content moderation. The techniques used, especially the combination of active learning and domain adversarial training, showcase a sophisticated understanding of the challenges in detecting undesired content. However, improvements are needed to address persistent bias issues and to enhance multilingual capabilities. I recommend **acceptance with minor revisions**, focusing on further refining the bias mitigation strategies and expanding support for non-English content.
