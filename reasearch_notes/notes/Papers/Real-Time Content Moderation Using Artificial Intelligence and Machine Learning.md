@@ -23,3 +23,5 @@ Monitoring user behaviour.
 - Continuously adapt and train models to prevent users to find and exploit flaws of your agent
 
 
+## Overall
+Interesting to cite for discussion in introduction for example, but no code presented, no new techniques, just an analysis of what exist, the challenges and ethical considerations.

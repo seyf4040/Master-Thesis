@@ -30,3 +30,5 @@ contains about 360k samples. available upon request to authors.
 ## Experiments 
 Too light, need bigger test/validation dataset.
 
+## Overall
+The system is a cloud based system, using available commercial tools. This doesn't correspond to the philosophy of Shareish platform, which would rather be self hosted and independent. 

@@ -42,3 +42,6 @@ MLLM might be better solution.
 
 Future is in a combination of OLI and moderation task.
 Need to find a way to be more robust against label noise (incorrect label).
+
+## Overall
+Very interesting dataset as it is multilingual and includes french samples. Paper concludes moderation needs a rule-based approach in addition to regular toxicity. 

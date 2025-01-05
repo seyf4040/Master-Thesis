@@ -109,3 +109,8 @@ Test on three stages of project
 - later stages: labelled production data
 Great impact on beginning stages, impact reduces gradually with advancement in the project. Still improves categories with less data but and slightly hurt performance in categories where no enough samples available.
 
+
+## Overall
+Very interesting paper, NLP techniques were used. Taxonomy is one of the most detailed ones.
+This is a toxicity detection AI no rule based moderation.
+No open source code available, model is accessible via api.

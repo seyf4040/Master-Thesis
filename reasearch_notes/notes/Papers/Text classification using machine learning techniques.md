@@ -1,5 +1,5 @@
 # Text classification using machine learning techniques.
-Site web: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=text+classification&oq=text+class#d=gs_qabs&t=1729184876712&u=%23p%3DphlpHOheYAUJ
+Site web: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=Text+classification+using+machine+learning+techniques&btnG=
 ## Introduction
 Two types: 
 - topic-based;
@@ -18,13 +18,13 @@ Too many feature need feature reduction:
 - [Feature Selection](#feature-selection)
 - [Feature transformation](#feature-transformation)
 
-## Feature selection 
+### Feature selection 
 - Feature Subset selection, best individual feature (document frequency, information gain, mutual information, chi squared) -->feature scoring methods.
 - Sequential forward selection (SFS), choose best single word, then add one word (best) at a time.
 SFS better result but greater computation cost
 - Pruning based approach, 
 
-## Feature transformation
+### Feature transformation
 - Principal component analysis (PCA), 
 - Latent semantic indexing (LSI),
 - k-NN LSI,
@@ -60,3 +60,8 @@ Usually precision and recall are used, accuracy is not a good evaluation methods
 Precision and recall are often combined:
 $F_\beta=\frac{(\beta^2+1)\pi\rho}{\beta^2\pi+\rho}$
 with $\beta$ set to 1 for equal importance between precision and recall. 
+
+
+## Overall
+Good summary of the field, useful to steer research in the correct direction.
+No code, dataset or new techniques presented.

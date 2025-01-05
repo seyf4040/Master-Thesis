@@ -11,6 +11,22 @@ Majority of researchers used:
 When applicable:
 - AUC_ROC 
 
+## Paper review: Text classification using machine learning techniques.
+website: https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=text+classification&oq=text+class#d=gs_qabs&t=1729184876712&u=%23p%3DphlpHOheYAUJ
+
+- Precision;
+$\pi_i=\frac{TP_i}{TP_i+FP_i}$
+- Recall;
+$\rho_i=\frac{TP_i}{TP_i+FN_i}$
+- Accuracy.
+$A_i=\frac{TP_i+TN_i}{TP_i+TN_i+FP_i+FN_i}$
+
+Usually precision and recall are used, accuracy is not a good evaluation methods for skewed datasets.
+
+Precision and recall are often combined:
+$F_\beta=\frac{(\beta^2+1)\pi\rho}{\beta^2\pi+\rho}$
+with $\beta$ set to 1 for equal importance between precision and recall. 
+
 ## Paper review: A critical analysis of metrics used for measuring progress in artificial intelligence
 website: https://arxiv.org/abs/2008.02577
 
