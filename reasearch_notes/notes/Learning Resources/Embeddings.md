@@ -6,6 +6,6 @@ Example:
 <!---
 ![Illustration of simple example of word embedding](../Assets/word-embedding.png)
 --->
-<img src="../Assets/word-embedding.png" width="50%">
+<img src="../notes/Assets/word-embedding.png" width="50%">
 Source: https://www.cs.cmu.edu/~dst/WordEmbeddingDemo/tutorial.html
 

@@ -37,7 +37,7 @@ Accuracy shouldn't be used alone but with precision and recall or F1 score.
 
 ## Most used metrics
 
-<img src="../Assets/Most used metrics per task.png" width="50%">
+<img src="../notes/Assets/Most used metrics per task.png" width="50%">
 
 For Classification
 - Accuracy;
