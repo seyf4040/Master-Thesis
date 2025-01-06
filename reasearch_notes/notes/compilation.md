@@ -33,12 +33,20 @@
 		- [Appendix](#appendix)
 		- [Overall](#overall)
 	- [Content Moderation by LLM: From Accuracy to Legitimacy](#content-moderation-by-llm-from-accuracy-to-legitimacy)
+		- [Introduction](#introduction)
+		- [The Accuracy Discourse](#the-accuracy-discourse)
+		- [Limitation of traditional ML](#limitation-of-traditional-ml)
+		- [Continuity](#continuity)
+		- [Overall](#overall)
 	- [Watch Your Language: Investigating Content Moderation with Large Language Models](#watch-your-language-investigating-content-moderation-with-large-language-models)
 		- [Abstract](#abstract)
 		- [Claim](#claim)
 		- [Discoveries](#discoveries)
 		- [Methods](#methods)
 		- [Toxicity detection](#toxicity-detection)
+		- [Overall](#overall)
+	- [Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification](#like-a-good-nearest-neighbor-practical-content-moderation-and-text-classification)
+		- [Introduction](#introduction)
 		- [Overall](#overall)
 - [Papers/Discriminative AI Papers](#papersdiscriminative-ai-papers)
 	- [OpenAI content moderation API](#openai-content-moderation-api)
@@ -77,6 +85,11 @@
 		- [Overall](#overall)
 	- [A review of standard text classification practices for multi-label toxicity identification of online content](#a-review-of-standard-text-classification-practices-for-multi-label-toxicity-identification-of-online-content)
 		- [Introduction](#introduction)
+		- [Techniques](#techniques)
+		- [Overall](#overall)
+- [Papers/Image moderation Papers](#papersimage-moderation-papers)
+	- [On-Device Content Moderation](#on-device-content-moderation)
+		- [Claims](#claims)
 		- [Techniques](#techniques)
 		- [Overall](#overall)
 - [Meeting Notes](#meeting-notes)
@@ -158,10 +171,14 @@ Some datasets I stumbled upon during the initial stages of my research
 - Catalogue of abusive language data [hatespeechdata](https://hatespeechdata.com/)
 - Swear Words Abusiveness Dataset [SWAD](https://github.com/dadangewp/SWAD-Repository) (GLP 3.0 icence)
 - Stormfront
-- TweetEval
-- 
+- [TweetEval](https://huggingface.co/datasets/ought/raft/viewer/tweet_eval_hate)
+- https://huggingface.co/datasets/manueltonneau/french-hate-speech-superset
+- https://www.kaggle.com/datasets/wajidhassanmoosa/multilingual-hatespeech-dataset
 ### Model
 Possible to start with as base for feature extraction a pre-trained model.
+Open Source models: 
+- https://huggingface.co/Hate-speech-CNERG/dehatebert-mono-french
+- https://github.com/hate-alert/DE-LIMIT?tab=readme-ov-file
 
 Need more research on text analysis, (sentiment, semantic, lexical, syntax).
 #### Architecture
@@ -502,6 +519,72 @@ It is worth trying this method and compare it with more traditional methods.
 
 website: https://arxiv.org/abs/2409.03219#:~:text=One%20trending%20application%20of%20LLM,makes%20correct%20decisions%20about%20content
 
+### Introduction
+Paper argues that accuracy is not a good metric to reflect performance of LLM in content moderation tasks. And that improving accuracy is not the true advancement LLMs offer, but rather their ability to justify and establish legitimacy.
+**Four fields LLM can offer improvements:**
+- conduct screening of hard cases from easy cases;
+- provide quality explanation for moderation decision;
+- assist human reviewers in getting more contextual information;
+- facilitate user participation in a more interactive way.
+### The Accuracy Discourse
+Here Precision and recall are considered similar to accuracy in the sens that they measure capability of making correct decisions, accuracy measures correct decisions and precision and recall measure capacity to avoid erroneous decisions.
+
+- **Impossible to reach 100% accuracy in real life, and dangerous to try to reach it (Overfitting):** Ground truth is not easy to determine;
+- **Focus only on individual aspect and not systemic aspect:** System accuracy is not aggregation of accuracy on individual cases but it refers to general performance of the whole moderation system, including metrics like:
+	- consistency;
+	- predictability;
+	- fairness of error distribution across different groups of user, different categories and different periods of time;
+- **Failed to recognize easy and hard cases (because they should be dealt with differently):** 
+	- Distinction already exists (eg. Meta);
+	- Also distinguished in legal systems;
+	- Different social impacts;µ
+	- Hard cases should not be dealt with by the moderation agent but by human agents;
+- **Overlook other important aspects:**
+	- Moderation should be seen as a part of governance systems on platforms;
+	- No legal compulsion to moderate but voluntary decision to:
+		- Prevent regulations;
+		- Promote public image;
+		- Make product more profitable;
+	- Right protection: delineation of free speech when it conflicts with other rights
+
+As accuracy is not perfect, The important questions become:
+- who suffers from false positive and false negatives?
+- What errors are acceptable?
+
+Alternative: ???
+
+
+### Limitation of traditional ML
+- Heavily relies on manual annotation of training dataset;
+	- Costly;
+	- Introduce bias;
+- Lack flexibility and adaptability;
+	- One models can't perform well on different environments;
+	- Can not adapt model with time;
+- Lack explainability and transparency;
+	- Can not provide explanation to user.
+
+Main difference:
+ML is target-trained >< LLM is pre-trained on huge corpus of data.
+
+LLM models are trained on a much larger dataset than traditional ML models this enable LLMs to better appreciate context and nuances, to generalize across domains,...
+
+LLM using transformers and especially self-attention layers can better understand context, linking words that are not necessarily neighbors.
+
+LLM decision process is decoupled from training process, allows flexibility, change prompt and you have a model adapted fer a task that could be very different than he previous one.
+
+#todo 
+- [ ] Research Transformers
+- [ ] Research attention layers, particularly self-attention
+
+### Continuity
+Paper then exposes a Legitimacy-based framework for content moderation. 
+
+### Overall
+Paper proposes a new way of using LLM for content moderation, instead of using LLM for their accuracy (which is not their best advantage for this paper), use the LLM to scan for easy cases and moderate them, then flag hard cases for human moderation.
+Accuracy as a metric to characterise performance is critiqued but no concrete alternative is given. Although the scope changes from individual to systemic (where consistency and predictability are proposed), no other metric for individual cases proposed. 
+Very interesting paper, with solid arguments, well thought limitations and a suitable framework.
+
 ---
 
 ## Watch Your Language: Investigating Content Moderation with Large Language Models
@@ -583,6 +666,27 @@ Lot's of test which is great.
 Promised to test/compare against state-of-the-art toxicity detection but only compared with Perspective API TOXICITY and SEVERE_TOXICITY.
 
 Very promising, LLM can be used for toxicity detection and even rule-base content moderation (no other IA model currently designed for this task).
+
+---
+
+## Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification
+website: https://arxiv.org/abs/2302.08957
+
+### Introduction
+Modification of SetFit (Thunstall et al., 2022),
+
+- Pre-trained Language Models (PLM): state-of-the-art
+Modern research:
+- In context learning;
+- pattern exploiting training;
+- adapter based fine tuning;
+- parameter efficient fine-tuning.
+These depend on billion-parameter PLMs, pay-to-use APIs, and/or prompting.
+
+
+### Overall
+The paper presents a modification of a transformer based model -SetFit- called LaGoNN. The main contribution lies in added nearest neighbor information to samples during training. No comparison with other classifiers than their own or SetFit. 
+Idea of adding nearest neighbor to training sample could be used but for the model, better candidates on other papers, conclusions of the paper are not very enthusiastic and imply that there is still a lot to do to achieve an inexpensive, reliable, robust content moderation model.
 
 ---
 
@@ -1007,6 +1111,38 @@ Only AUC reported, (without specifying the curve).
 
 ---
 
+# Papers/Image moderation Papers
+## On-Device Content Moderation
+website: https://arxiv.org/abs/2107.11845
+
+### Claims
+F1 score = 0.91
+precision = 95%
+recall = 88%
+false positive rate on safe images = 0.002
+
+### Techniques 
+#### What exists:
+- Skin detection based
+- Hand crafted feature based: Bag-of-Visual-Words (BoVW)
+- Neural feature based
+
+#### Solution proposed
+- Bodypart Detector: Single Shot Multibox Detector (SSD) 
+- MobileNetV3
+Here a trade-off is made, indeed the aim is to run the model on mobile devices
+
+### Overall
+Image moderation, only safe and not safe for work (nsfw). 
+Neither the dataset not the model or code are provided. Only comparison is OpenYahoo.
+Great performance if we believe reported metrics.
+
+
+---
+
+
+---
+
 # Meeting Notes
 ## 05/11/24 Meeting notes
 
@@ -1056,13 +1192,15 @@ Penser a comment On va aborder le sujets, qu'est ce qui est le plus prometteur ?
 
 #todo
 - [ ] Preciser le dataset utiliser pour les test (taille du dataset)
-- [ ] trouver dataset en français (multilingual Reddit)
+- [x] trouver dataset en français (multilingual Reddit)
+Added 2 datasets on hate speech in french:
+- https://huggingface.co/datasets/manueltonneau/french-hate-speech-superset
+- https://www.kaggle.com/datasets/wajidhassanmoosa/multilingual-hatespeech-dataset
 - [x] ajouter résumer pour les paper review (lesquels sont les plus utiles, ...)
 Added "Overall" section for every new paper review. 
 - [ ] faire tourner les modèle en locale (maybe faster) (se rendre le plus autonome possible)
 - [x] Expliquer le choix de metrics choisit
-Added [[Metrics Choice]].
-- [ ] 
+Added [[Metrics Choice]]
 
 - [x] Check out paper: 
 - Content moderation by LLM, from accuracy to legitimacy.
@@ -1073,11 +1211,15 @@ Added [[Metrics Choice]].
 ## 07/01/25 Meeting notes
 
 ### Topics to discuss
-- Possibility to have access to remote GPU (for training and testing).
-- I have the intention to test both LLM (local version) and more conventional methods. Is fine? 
+- Possibility to have access to remote GPU (for training and testing). 
+- LLM or NLP classifiers?
 - Are we doing rule-based moderation, toxicity detection or both?
-- what is definition of undesired content (Google Jigsaw definition?)?
+- what is definition of undesired content?
+Google Jigsaw definition?
 - What are the moderation rules for the platform?
+See Main file for first draft of rules.
+- Is legal requirements a concern in the scope of my thesis (GDPR, ...)?
+If yes then sending user content to API can be problematic and running locally would be best course of action.
 
 ### Discussed in Meeting
 

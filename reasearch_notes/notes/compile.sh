@@ -20,6 +20,7 @@ PAPERS_GENERATIVE_AI=(
     "Papers/Adapting Large Language Models for Content Moderation Pitfalls in Data Engineering and Supervised Fine-tuning.md"
     "Papers/Content Moderation by LLM From Accuracy to Legitimacy.md"
     "Papers/Watch Your Language Investigating Content Moderation with Large Language Models.md"
+    "Papers/Like a Good Nearest Neighbor Practical Content Moderation and Text Classification.md"
 )
 PAPERS_DISCRIMINATIVE_AI=(
     "Papers/OpenAI content moderation API.md"
@@ -29,6 +30,9 @@ PAPERS_DISCRIMINATIVE_AI=(
     "Papers/Design and Application of an AI‐Based Text Content Moderation System.md"
     "Papers/Real-Time Content Moderation Using Artificial Intelligence and Machine Learning.md"
     "Papers/A review of standard text classification practices for multi-label toxicity identification of online content.md"
+)
+PAPERS_IMAGE=(
+    "Papers/On-Device Content Moderation.md"
 )
 MEETINGS=(
     "Meeting notes/05-11-2024.md"
@@ -49,6 +53,7 @@ CATEGORIES["Main"]="FILES"
 CATEGORIES["Websites"]="WEBSITES"
 CATEGORIES["Papers/Generative AI Papers"]="PAPERS_GENERATIVE_AI"
 CATEGORIES["Papers/Discriminative AI Papers"]="PAPERS_DISCRIMINATIVE_AI"
+CATEGORIES["Papers/Image moderation Papers"]="PAPERS_IMAGE"
 CATEGORIES["Meeting Notes"]="MEETINGS"
 CATEGORIES["Learning Resources"]="LEARNING"
 
@@ -58,6 +63,7 @@ CATEGORY_ORDER=(
     "Websites"
     "Papers/Generative AI Papers"
     "Papers/Discriminative AI Papers"
+    "Papers/Image moderation Papers"
     "Meeting Notes"
     "Learning Resources"
 )

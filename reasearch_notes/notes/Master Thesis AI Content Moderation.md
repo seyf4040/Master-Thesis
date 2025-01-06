@@ -52,10 +52,14 @@ Some datasets I stumbled upon during the initial stages of my research
 - Catalogue of abusive language data [hatespeechdata](https://hatespeechdata.com/)
 - Swear Words Abusiveness Dataset [SWAD](https://github.com/dadangewp/SWAD-Repository) (GLP 3.0 icence)
 - Stormfront
-- TweetEval
-- 
+- [TweetEval](https://huggingface.co/datasets/ought/raft/viewer/tweet_eval_hate)
+- https://huggingface.co/datasets/manueltonneau/french-hate-speech-superset
+- https://www.kaggle.com/datasets/wajidhassanmoosa/multilingual-hatespeech-dataset
 ## Model
 Possible to start with as base for feature extraction a pre-trained model.
+Open Source models: 
+- https://huggingface.co/Hate-speech-CNERG/dehatebert-mono-french
+- https://github.com/hate-alert/DE-LIMIT?tab=readme-ov-file
 
 Need more research on text analysis, (sentiment, semantic, lexical, syntax).
 ### Architecture

@@ -20,29 +20,33 @@ kanban-plugin: board
 - [ ] [[From Machine Learning to Explainable AI]]
 
 
+## Additional
+
+- [ ] [[GPTFUZZER Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts]]
+- [ ] [[The Use of AI in Online Content Moderation]]
+
+
 ## Pending (3)
 
-- [ ] [[The Use of AI in Online Content Moderation]]
-- [ ] [[On-Device Content Moderation]]
 - [ ] [[Toxicity Detection is NOT all you Need Measuring the Gaps to Supporting Volunteer Content Moderators]]
 
 
 ## Priority
 
-- [ ] [[GPTFUZZER Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts]]
 - [ ] [[Deeper Attention to Abusive User Content Moderation]]
-- [ ] [[A critical analysis of metrics used for measuring progress in artificial intelligence]]
 
 
 ## In Progress (1)
 
-- [ ] [[Like a Good Nearest Neighbor Practical Content Moderation and Text Classification]]
-- [ ] [[Content Moderation by LLM From Accuracy to Legitimacy]]
 
 
 ## Done
 
+- [ ] [[Content Moderation by LLM From Accuracy to Legitimacy]]
+- [ ] [[On-Device Content Moderation]]
+- [ ] [[Like a Good Nearest Neighbor Practical Content Moderation and Text Classification]]
 - [ ] [[Content moderation, AI, and the question of scale]]
+- [ ] A critical analysis of metrics used for measuring progress in artificial intelligence
 - [ ] [[Watch Your Language Investigating Content Moderation with Large Language Models]]
 - [ ] [[LLM-Mod Can Large language models assist content moderation]]
 - [ ] [[Adapting Large Language Models for Content Moderation Pitfalls in Data Engineering and Supervised Fine-tuning]]
@@ -59,6 +63,6 @@ kanban-plugin: board
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false,false,false,false],"lane-width":240}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false],"lane-width":240}
 ```
 %%

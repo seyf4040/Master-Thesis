@@ -1,3 +1,25 @@
 # On-Device Content Moderation
-website: https://ieeexplore.ieee.org/abstract/document/9534227?casa_token=1TzQTlx-4DcAAAAA:Cw2Wq8XUYL5o-hfJSNBChGgCyzOHoPUYE6mcRORfoLUpWFuB382UpOi1JUnMMOnDEvIR4YGYXPW-Vw
-Image moderation, only safe and not safe for work (nsfw)
+website: https://arxiv.org/abs/2107.11845
+
+## Claims
+F1 score = 0.91
+precision = 95%
+recall = 88%
+false positive rate on safe images = 0.002
+
+## Techniques 
+### What exists:
+- Skin detection based
+- Hand crafted feature based: Bag-of-Visual-Words (BoVW)
+- Neural feature based
+
+### Solution proposed
+- Bodypart Detector: Single Shot Multibox Detector (SSD) 
+- MobileNetV3
+Here a trade-off is made, indeed the aim is to run the model on mobile devices
+
+## Overall
+Image moderation, only safe and not safe for work (nsfw). 
+Neither the dataset not the model or code are provided. Only comparison is OpenYahoo.
+Great performance if we believe reported metrics.
+
