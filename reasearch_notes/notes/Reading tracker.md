@@ -6,7 +6,7 @@ kanban-plugin: board
 
 ## To Do
 
-- [ ] [[Artificial intelligence as a tool in social media content moderation]]
+- [ ] [[notes/Papers/Artificial intelligence as a tool in social media content moderation]]
 - [ ] [[Integrating Content Moderation Systems with Large Language Models]]
 - [ ] [[Content Moderation System Using Machine Learning Techniques]]
 - [ ] [[Do You Really Want to Hurt Me Predicting Abusive Swearing in Social Media]]
