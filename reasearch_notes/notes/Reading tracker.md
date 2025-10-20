@@ -4,7 +4,7 @@ kanban-plugin: board
 
 ---
 
-## To Do
+## To Do [2024]
 
 - [ ] [[notes/Papers/Artificial intelligence as a tool in social media content moderation]]
 - [ ] [[Integrating Content Moderation Systems with Large Language Models]]
@@ -18,6 +18,15 @@ kanban-plugin: board
 - [ ] [[The oversight of content moderation by AI, impact assessments and their limitations]]
 - [ ] [[Transfer learning for text classification]]
 - [ ] [[From Machine Learning to Explainable AI]]
+
+
+## To Do [2025]
+
+- [ ] [[Llama Guard LLM-based Input-Output Safeguard for Human-AI Conversations]]
+- [ ] [[WildGuard Open One-Stop Moderation Tools for Safety Risks, Jailbreaks, and Refusals of LLMs]]
+- [ ] [[ToxiGen A Large-Scale Machine-Generated Dataset for Adversarial and Implicit Hate Speech Detection]]
+- [ ] [[HateCheck Functional Tests for Hate Speech Detection Models]]
+- [ ] [[Detoxify]]
 
 
 ## Additional
@@ -63,6 +72,6 @@ kanban-plugin: board
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false],"lane-width":240}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false,false,false],"lane-width":240}
 ```
 %%
