@@ -1,5 +1,11 @@
 # Cross-Paper Summary & Synthesis
 
+```table-of-contents
+title: ## 📋 Table of contents
+minLevel:2
+maxLevel:2
+```
+
 ---
 ## 📚 Papers by Category
 
@@ -187,6 +193,76 @@
     - English-centric: 21/29 papers
     - French support: Multilingual Reddit, ShieldGemma, Perspective API (only 3 papers with good FR support)
     - Gap: French-specific evaluation and cultural adaptation
+
+---
+
+### **LLM Safety & Guardrails** - 2 papers
+
+27. **Llama Guard: LLM-based Input-Output Safeguard** (2023-2024) ⭐⭐⭐
+    - Meta's open-source safety model (Llama 2/3 based)
+    - **Llama Guard 3**: 8 languages including French ✅
+    - Customizable taxonomy (MLCommons aligned)
+    - Dual classification: input + output moderation
+    - Performance matches/exceeds OpenAI Moderation API
+    - **1B INT4 version** available for on-device deployment
+28. **WildGuard: Open One-Stop Moderation Tools** (2024) ⭐⭐
+    - AI2's multi-task safety model
+    - **Three tasks**: prompt harm, response harm, refusal detection
+    - State-of-the-art adversarial robustness
+    - 92K training examples (WildGuardMix dataset)
+    - Exceeds GPT-4 on jailbreak defense
+    - Limited multilingual support (primarily English)
+
+---
+
+### **Datasets & Benchmarks** - 3 papers
+
+29. **ToxiGen: Machine-Generated Dataset for Implicit Hate** (2022) ⭐⭐⭐
+    - 274K adversarially-generated examples
+    - **95% implicit toxicity** (subtle, context-dependent)
+    - 13 minority groups covered
+    - ALICE generation method (RoBERTa-based)
+    - Reduces false positives on identity mentions by 9%
+    - Improves implicit hate detection (+8% F1)
+    - English only (no French version)
+30. **HateCheck: Functional Tests for Hate Detection** (2021) ⭐⭐⭐
+    - 3,728 test cases across **29 functionalities**
+    - **French version available** (Multilingual HateCheck 2022) ✅
+    - Template-based evaluation (identity, slurs, negations, etc.)
+    - Pass threshold: 70% per functionality
+    - Reveals specific model weaknesses
+    - Essential for systematic evaluation
+31. **Detoxify: Toxic Comment Classification** (2020) ⭐⭐
+    - Unitary's open-source toxicity classifier
+    - **Multilingual version includes French** ✅
+    - BERT-based (7 toxicity categories)
+    - Fast inference (~50ms with GPU)
+    - 92% AUC on multilingual data
+    - Production-ready, Apache 2.0 license
+    - Good baseline/first-pass filter
+
+---
+
+### **Legal, Regulatory & Policy** - 1 paper
+
+32. **Online Content Moderation: Regulatory Challenges** (2024) ⭐⭐
+    - Master thesis (University of Namur)
+    - DSA, GDPR compliance
+    - Legal frameworks for platforms
+    - Likely French language
+
+---
+
+### **Foundational Concepts** - 2 papers
+
+33. **Transfer Learning for Text Classification** (2005) ⭐⭐
+    - Foundational concept (NeurIPS)
+    - Pre-training + fine-tuning paradigm
+    - Underlies all modern transformers
+34. **Deeper Attention to Abusive User Content Moderation** (2017) ⭐⭐
+    - Early attention mechanisms
+    - Historical context
+    - **Priority to read in full**
 
 ---
 
