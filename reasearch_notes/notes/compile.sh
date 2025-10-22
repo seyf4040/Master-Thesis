@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to store the combined file
-OUTPUT_FILE="compilation.md"
+OUTPUT_FILE="Compilation.md"
 
 # Empty the output file if it exists
 > "$OUTPUT_FILE"
