@@ -59,7 +59,7 @@
 
 ---
 
-# Main
+# Main test
 ## Master Thesis AI Content Moderation
 
 [[Reading tracker]]
@@ -227,7 +227,7 @@ Rule number 5 is too restrictive, here is a test using ChatGPT to illustrate thi
 - **[Meeting Notes](./Meeting%20notes/)** - Historical decisions and action items
 
 #### Full Archive
-- **[Complete Compilation](Compilation.md)** - All paper summaries in single document
+- **[Complete Compilation](compilation.md)** - All paper summaries in single document
 
 ---
 
