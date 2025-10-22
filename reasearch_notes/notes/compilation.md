@@ -1,61 +1,61 @@
-- [[#Main|Main]]
-	- [[#Main#Master Thesis AI Content Moderation|Master Thesis AI Content Moderation]]
-- [[#Progress Tracking|Progress Tracking]]
-	- [[#Progress Tracking#Thesis Progress Summary|Thesis Progress Summary]]
-- [[#Summaries|Summaries]]
-	- [[#Summaries#Complete Papers Analysis: Updated Comparison Table & Flowchart (34 Papers)|Complete Papers Analysis: Updated Comparison Table & Flowchart (34 Papers)]]
-	- [[#Summaries#Comprehensive Dataset Inventory for Content Moderation Research|Comprehensive Dataset Inventory for Content Moderation Research]]
-	- [[#Summaries#Evaluation Framework|Evaluation Framework]]
-	- [[#Summaries#LLM Models for Content Moderation - Comprehensive Inventory|LLM Models for Content Moderation - Comprehensive Inventory]]
-- [[#Websites|Websites]]
-	- [[#Websites#EthicalEye|EthicalEye]]
-	- [[#Websites#KoalaAI Text Moderation|KoalaAI Text Moderation]]
-- [[#Papers/LLM-Based Approaches|Papers/LLM-Based Approaches]]
-	- [[#Papers/LLM-Based Approaches#Watch Your Language: Investigating Content Moderation with Large Language Models|Watch Your Language: Investigating Content Moderation with Large Language Models]]
-	- [[#Papers/LLM-Based Approaches#Adapting Large Language Models for Content Moderation: Pitfalls in Data Engineering and Supervised Fine-tuning|Adapting Large Language Models for Content Moderation: Pitfalls in Data Engineering and Supervised Fine-tuning]]
-	- [[#Papers/LLM-Based Approaches#Content Moderation by LLM: From Accuracy to Legitimacy|Content Moderation by LLM: From Accuracy to Legitimacy]]
-	- [[#Papers/LLM-Based Approaches#LLM-Mod: Can Large language models assist content moderation|LLM-Mod: Can Large language models assist content moderation]]
-	- [[#Papers/LLM-Based Approaches#Integrating Content Moderation Systems with Large Language Models|Integrating Content Moderation Systems with Large Language Models]]
-	- [[#Papers/LLM-Based Approaches#Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations|Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations]]
-- [[#Papers/Traditional ML & Discriminative|Papers/Traditional ML & Discriminative]]
-	- [[#Papers/Traditional ML & Discriminative#OpenAI content moderation API|OpenAI content moderation API]]
-	- [[#Papers/Traditional ML & Discriminative#Multilingual content moderation, a case study on Reddit|Multilingual content moderation, a case study on Reddit]]
-	- [[#Papers/Traditional ML & Discriminative#Perspective API|Perspective API]]
-	- [[#Papers/Traditional ML & Discriminative#Text classification using machine learning techniques.|Text classification using machine learning techniques.]]
-	- [[#Papers/Traditional ML & Discriminative#Design and Application of an AI‐Based Text Content Moderation System|Design and Application of an AI‐Based Text Content Moderation System]]
-	- [[#Papers/Traditional ML & Discriminative#Real-Time Content Moderation Using Artificial Intelligence and Machine Learning|Real-Time Content Moderation Using Artificial Intelligence and Machine Learning]]
-	- [[#Papers/Traditional ML & Discriminative#A review of standard text classification practices for multi-label toxicity identification of online content|A review of standard text classification practices for multi-label toxicity identification of online content]]
-	- [[#Papers/Traditional ML & Discriminative#Detoxify: Toxicity Detection Models|Detoxify: Toxicity Detection Models]]
-- [[#Papers/Specialized Classification|Papers/Specialized Classification]]
-	- [[#Papers/Specialized Classification#Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification|Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification]]
-	- [[#Papers/Specialized Classification#Do You Really Want to Hurt Me? Predicting Abusive Swearing in Social Media|Do You Really Want to Hurt Me? Predicting Abusive Swearing in Social Media]]
-	- [[#Papers/Specialized Classification#Predicting the Type and Target of Offensive Posts in Social Media|Predicting the Type and Target of Offensive Posts in Social Media]]
-	- [[#Papers/Specialized Classification#Deeper Attention to Abusive User Content Moderation|Deeper Attention to Abusive User Content Moderation]]
-- [[#Papers/Datasets & Evaluation|Papers/Datasets & Evaluation]]
-	- [[#Papers/Datasets & Evaluation#ToxiGen: A Large-Scale Machine-Generated Dataset for Adversarial and Implicit Hate Speech Detection|ToxiGen: A Large-Scale Machine-Generated Dataset for Adversarial and Implicit Hate Speech Detection]]
-	- [[#Papers/Datasets & Evaluation#HateCheck: Functional Tests for Hate Speech Detection Models|HateCheck: Functional Tests for Hate Speech Detection Models]]
-	- [[#Papers/Datasets & Evaluation#WildGuard: Open One-Stop Moderation Tools for Safety Risks, Jailbreaks, and Refusals of LLMs|WildGuard: Open One-Stop Moderation Tools for Safety Risks, Jailbreaks, and Refusals of LLMs]]
-- [[#Papers/Image & Multimodal|Papers/Image & Multimodal]]
-	- [[#Papers/Image & Multimodal#On-Device Content Moderation|On-Device Content Moderation]]
-- [[#Papers/Theoretical & Policy|Papers/Theoretical & Policy]]
-	- [[#Papers/Theoretical & Policy#Content moderation, AI, and the question of scale|Content moderation, AI, and the question of scale]]
-	- [[#Papers/Theoretical & Policy#Artificial intelligence as a tool in social media content moderation|Artificial intelligence as a tool in social media content moderation]]
-	- [[#Papers/Theoretical & Policy#The Use of AI in Online Content Moderation|The Use of AI in Online Content Moderation]]
-- [[#Papers/Security & Adversarial|Papers/Security & Adversarial]]
-	- [[#Papers/Security & Adversarial#GPTFUZZER: Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts|GPTFUZZER: Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts]]
-- [[#Papers/Additional & Pending|Papers/Additional & Pending]]
-	- [[#Papers/Additional & Pending#Toxicity Detection is NOT all you Need: Measuring the Gaps to Supporting Volunteer Content Moderators|Toxicity Detection is NOT all you Need: Measuring the Gaps to Supporting Volunteer Content Moderators]]
-	- [[#Papers/Additional & Pending#Content Moderation System Using Machine Learning Techniques|Content Moderation System Using Machine Learning Techniques]]
-- [[#Meeting Notes|Meeting Notes]]
-	- [[#Meeting Notes#05/11/24 Meeting notes|05/11/24 Meeting notes]]
-	- [[#Meeting Notes#19/11/24 Meeting notes|19/11/24 Meeting notes]]
-	- [[#Meeting Notes#07/01/25 Meeting notes|07/01/25 Meeting notes]]
-- [[#Learning Resources|Learning Resources]]
-	- [[#Learning Resources#Natural Language Processing (NLP)|Natural Language Processing (NLP)]]
-	- [[#Learning Resources#Embeddings in NLP|Embeddings in NLP]]
-	- [[#Learning Resources#Chain of Thought (CoT)|Chain of Thought (CoT)]]
-	- [[#Learning Resources#Metrics Choice|Metrics Choice]]
-	- [[#Learning Resources#Few-Shot Learning: Concepts and Methods|Few-Shot Learning: Concepts and Methods]]
+- [Main](#main)
+	- [Master Thesis AI Content Moderation](#master-thesis-ai-content-moderation)
+- [Progress Tracking](#progress-tracking)
+	- [Thesis Progress Summary](#thesis-progress-summary)
+- [Summaries](#summaries)
+	- [Complete Papers Analysis: Updated Comparison Table & Flowchart (34 Papers)](#complete-papers-analysis-updated-comparison-table--flowchart-34-papers)
+	- [Comprehensive Dataset Inventory for Content Moderation Research](#comprehensive-dataset-inventory-for-content-moderation-research)
+	- [Evaluation Framework](#evaluation-framework)
+	- [LLM Models for Content Moderation - Comprehensive Inventory](#llm-models-for-content-moderation---comprehensive-inventory)
+- [Websites](#websites)
+	- [EthicalEye](#ethicaleye)
+	- [KoalaAI Text Moderation](#koalaai-text-moderation)
+- [Papers/LLM-Based Approaches](#papersllm-based-approaches)
+	- [Watch Your Language: Investigating Content Moderation with Large Language Models](#watch-your-language-investigating-content-moderation-with-large-language-models)
+	- [Adapting Large Language Models for Content Moderation: Pitfalls in Data Engineering and Supervised Fine-tuning](#adapting-large-language-models-for-content-moderation-pitfalls-in-data-engineering-and-supervised-fine-tuning)
+	- [Content Moderation by LLM: From Accuracy to Legitimacy](#content-moderation-by-llm-from-accuracy-to-legitimacy)
+	- [LLM-Mod: Can Large language models assist content moderation](#llm-mod-can-large-language-models-assist-content-moderation)
+	- [Integrating Content Moderation Systems with Large Language Models](#integrating-content-moderation-systems-with-large-language-models)
+	- [Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations](#llama-guard-llm-based-input-output-safeguard-for-human-ai-conversations)
+- [Papers/Traditional ML & Discriminative](#paperstraditional-ml--discriminative)
+	- [OpenAI content moderation API](#openai-content-moderation-api)
+	- [Multilingual content moderation, a case study on Reddit](#multilingual-content-moderation-a-case-study-on-reddit)
+	- [Perspective API](#perspective-api)
+	- [Text classification using machine learning techniques.](#text-classification-using-machine-learning-techniques)
+	- [Design and Application of an AI‐Based Text Content Moderation System](#design-and-application-of-an-ai%E2%80%90based-text-content-moderation-system)
+	- [Real-Time Content Moderation Using Artificial Intelligence and Machine Learning](#real-time-content-moderation-using-artificial-intelligence-and-machine-learning)
+	- [A review of standard text classification practices for multi-label toxicity identification of online content](#a-review-of-standard-text-classification-practices-for-multi-label-toxicity-identification-of-online-content)
+	- [Detoxify: Toxicity Detection Models](#detoxify-toxicity-detection-models)
+- [Papers/Specialized Classification](#papersspecialized-classification)
+	- [Like a Good Nearest Neighbor: Practical Content Moderation and Text Classification](#like-a-good-nearest-neighbor-practical-content-moderation-and-text-classification)
+	- [Do You Really Want to Hurt Me? Predicting Abusive Swearing in Social Media](#do-you-really-want-to-hurt-me-predicting-abusive-swearing-in-social-media)
+	- [Predicting the Type and Target of Offensive Posts in Social Media](#predicting-the-type-and-target-of-offensive-posts-in-social-media)
+	- [Deeper Attention to Abusive User Content Moderation](#deeper-attention-to-abusive-user-content-moderation)
+- [Papers/Datasets & Evaluation](#papersdatasets--evaluation)
+	- [ToxiGen: A Large-Scale Machine-Generated Dataset for Adversarial and Implicit Hate Speech Detection](#toxigen-a-large-scale-machine-generated-dataset-for-adversarial-and-implicit-hate-speech-detection)
+	- [HateCheck: Functional Tests for Hate Speech Detection Models](#hatecheck-functional-tests-for-hate-speech-detection-models)
+	- [WildGuard: Open One-Stop Moderation Tools for Safety Risks, Jailbreaks, and Refusals of LLMs](#wildguard-open-one-stop-moderation-tools-for-safety-risks-jailbreaks-and-refusals-of-llms)
+- [Papers/Image & Multimodal](#papersimage--multimodal)
+	- [On-Device Content Moderation](#on-device-content-moderation)
+- [Papers/Theoretical & Policy](#paperstheoretical--policy)
+	- [Content moderation, AI, and the question of scale](#content-moderation-ai-and-the-question-of-scale)
+	- [Artificial intelligence as a tool in social media content moderation](#artificial-intelligence-as-a-tool-in-social-media-content-moderation)
+	- [The Use of AI in Online Content Moderation](#the-use-of-ai-in-online-content-moderation)
+- [Papers/Security & Adversarial](#paperssecurity--adversarial)
+	- [GPTFUZZER: Red Teaming Large Language Models with Auto-Generated Jailbreak Prompts](#gptfuzzer-red-teaming-large-language-models-with-auto-generated-jailbreak-prompts)
+- [Papers/Additional & Pending](#papersadditional--pending)
+	- [Toxicity Detection is NOT all you Need: Measuring the Gaps to Supporting Volunteer Content Moderators](#toxicity-detection-is-not-all-you-need-measuring-the-gaps-to-supporting-volunteer-content-moderators)
+	- [Content Moderation System Using Machine Learning Techniques](#content-moderation-system-using-machine-learning-techniques)
+- [Meeting Notes](#meeting-notes)
+	- [05/11/24 Meeting notes](#051124-meeting-notes)
+	- [19/11/24 Meeting notes](#191124-meeting-notes)
+	- [07/01/25 Meeting notes](#070125-meeting-notes)
+- [Learning Resources](#learning-resources)
+	- [Natural Language Processing (NLP)](#natural-language-processing-nlp)
+	- [Embeddings in NLP](#embeddings-in-nlp)
+	- [Chain of Thought (CoT)](#chain-of-thought-cot)
+	- [Metrics Choice](#metrics-choice)
+	- [Few-Shot Learning: Concepts and Methods](#few-shot-learning-concepts-and-methods)
 
 ---
 
@@ -227,7 +227,7 @@ Rule number 5 is too restrictive, here is a test using ChatGPT to illustrate thi
 - **[Meeting Notes](./Meeting%20notes/)** - Historical decisions and action items
 
 #### Full Archive
-- **[Complete Compilation](./compilation.md)** - All paper summaries in single document
+- **[Complete Compilation](Compilation.md)** - All paper summaries in single document
 
 ---
 
