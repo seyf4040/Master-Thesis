@@ -49,6 +49,23 @@
 
 ---
 
+## 📚 Key Documents for Review
+
+### Essential Reading
+- **[Complete Papers Analysis (34 Papers)](./Summaries/Complete%20Papers%20Analysis%20comparison%20Table%20%26%20Flowchart.md)** - Full literature review with comparison table
+- **[LLM Models Inventory](./Summaries/LLM%20Models.md)** - Technical specifications for Llama Guard 3, ShieldGemma, Mistral
+- **[Datasets Summary](./Summaries/Datasets.md)** - ToxiGen, HateCheck French, training strategy
+
+### Supporting Materials
+- **[Evaluation Framework](./Summaries/Evaluation%20Framework.md)** - Multi-dimensional assessment approach
+- **[Definitions of Toxic Content](./Summaries/Definitions%20of%20Toxic.md)** - Taxonomy references (OpenAI, Perspective API)
+- **[Meeting Notes](./Meeting%20notes/)** - Historical decisions and action items
+
+### Full Archive
+- **[Complete Compilation](./compilation.md)** - All paper summaries in single document
+
+---
+
 ## 🎯 What's Next
 
 ### Short-Term (Weeks 1-4)
