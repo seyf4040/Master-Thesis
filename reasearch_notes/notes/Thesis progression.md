@@ -62,7 +62,7 @@
 - **[Meeting Notes](./Meeting%20notes/)** - Historical decisions and action items
 
 ### Full Archive
-- **[Complete Compilation](compilation.md)** - All paper summaries in single document
+- **[Complete Compilation](./compilation.md)** - All paper summaries in single document
 
 ---
 
