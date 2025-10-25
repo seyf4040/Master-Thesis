@@ -141,7 +141,7 @@ Based on literature gaps identified, the thesis will address:
 
 2. **Resources:**
     - GPU access for fine-tuning and inference? 
-	    - Alan GPU cluster access available (connection issues to resolve)
+	    - ✅ Alan GPU cluster access available
     - Budget constraints for cloud services?
 	    - Even for testing? if ever needed.
 
