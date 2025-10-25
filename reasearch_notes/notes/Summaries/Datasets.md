@@ -15,22 +15,22 @@ maxLevel:2
 
 ## Dataset Comparison Table
 
-|Dataset|Size|Languages|Type|Implicit %|License|Availability|Relevance|
-|---|---|---|---|---|---|---|---|
-|**ToxiGen**|274K|EN|Training|95%|MIT|Open|⭐⭐⭐ Very High|
-|**OpenAI Mod**|1.6K public|EN|Training|Mixed|MIT|Partial|⭐⭐⭐ Very High|
-|**Multilingual Reddit**|1.8M|Multi|Training|N/A|Restricted|Restricted|⭐⭐⭐ Very High|
-|**Jigsaw Challenges**|160K-2M|EN, 7 langs|Training|30%|Open|Open|⭐⭐ Medium-High|
-|**Civil Comments**|2M|EN|Training|30%|Open|Open|⭐⭐ Medium|
-|**OLID**|14.1K|EN|Training|35%|Free w/ cite|Open|⭐⭐ Medium-High|
-|**Wikipedia Attacks**|Moderate|EN|Training|N/A|CC0|Open|⭐ Low-Medium|
-|**Stormfront**|10K|EN|Training|50%|Research|Open|⭐ Low|
-|**SWAD**|Corpus|EN?|Training|N/A|GPL 3.0|Open|⭐⭐ Medium|
-|**TweetEval**|Subset|EN|Evaluation|N/A|Open|Open|⭐ Low-Medium|
-|**French Hate Superset**|Moderate|**FR** ✅|Training|N/A|Check|Open|⭐⭐⭐ Very High|
-|**Multilingual Hate (Kaggle)**|Varies|Multi+FR|Training|N/A|Check|Open|⭐⭐⭐ Very High|
-|**HateCheck**|3.7K|EN, **FR**✅ +8|**Testing**|Varies|CC BY 4.0|Open|⭐⭐⭐ Very High|
-|**HateSpeechData.com**|N/A (catalog)|Many|Meta|N/A|Varies|Catalog|⭐⭐⭐ Very High|
+| Dataset                        | Size          | Languages      | Type        | Implicit % | License      | Availability | Relevance      |
+| ------------------------------ | ------------- | -------------- | ----------- | ---------- | ------------ | ------------ | -------------- |
+| **ToxiGen**                    | 274K          | EN             | Training    | 95%        | MIT          | Open         | ⭐⭐⭐ Very High  |
+| **OpenAI Mod**                 | 1.6K public   | EN             | Training    | Mixed      | MIT          | Partial      | ⭐⭐⭐ Very High  |
+| **Multilingual Reddit**        | 1.8M          | Multi          | Training    | N/A        | Restricted   | Restricted   | ⭐⭐⭐ Very High  |
+| **Jigsaw Challenges**          | 160K-2M       | EN, 7 langs    | Training    | 30%        | Open         | Open         | ⭐⭐ Medium-High |
+| **Civil Comments**             | 2M            | EN             | Training    | 30%        | Open         | Open         | ⭐⭐ Medium      |
+| **OLID**                       | 14.1K         | EN             | Training    | 35%        | Free w/ cite | Open         | ⭐⭐ Medium-High |
+| **Wikipedia Attacks**          | Moderate      | EN             | Training    | N/A        | CC0          | Open         | ⭐ Low-Medium   |
+| **Stormfront**                 | 10K           | EN             | Training    | 50%        | Research     | Open         | ⭐ Low          |
+| **SWAD**                       | Corpus        | EN?            | Training    | N/A        | GPL 3.0      | Open         | ⭐⭐ Medium      |
+| **TweetEval**                  | Subset        | EN             | Evaluation  | N/A        | Open         | Open         | ⭐ Low-Medium   |
+| **French Hate Superset**       | Moderate      | **FR** ✅       | Training    | N/A        | Check        | Open         | ⭐⭐⭐ Very High  |
+| **Multilingual Hate (Kaggle)** | Varies        | Multi+FR       | Training    | N/A        | Check        | Open         | ⭐⭐⭐ Very High  |
+| **HateCheck**                  | 3.7K          | EN, **FR**✅ +8 | **Testing** | Varies     | CC BY 4.0    | Open         | ⭐⭐⭐ Very High  |
+| **HateSpeechData.com**         | N/A (catalog) | Many           | Meta        | N/A        | Varies       | Catalog      | ⭐⭐⭐ Very High  |
 
 ---
 
