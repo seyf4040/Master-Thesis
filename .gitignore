@@ -170,4 +170,5 @@ cython_debug/
 combine-md.sh
 
 # Private files
+private/
 private*
