@@ -70,4 +70,4 @@ du -sh $OUTPUT_DIR
 echo "Copying results to home directory for backup..."
 cp -r $OUTPUT_DIR/* $HOME/results_backup/llama_guard_$(date +%Y%m%d)/
 
-echo "All done!"
+echo "All done!" 
