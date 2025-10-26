@@ -3,7 +3,7 @@
 #SBATCH --output=/home/sural/code/logs/llama_guard_%j.out
 #SBATCH --error=/home/sural/code/logs/llama_guard_%j.err
 #SBATCH --time=00:15:00
-#SBATCH --partition=debug
+#SBATCH --partition=a5000
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
