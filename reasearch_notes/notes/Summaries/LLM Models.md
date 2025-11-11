@@ -6,28 +6,40 @@
 
 ---
 
-```table-of-contents
-title: ## 📋 Table of Contents
-minLevel:2
-maxLevel:2
-```
+- [[#Model Comparison Table|Model Comparison Table]]
+- [[#Open-Source LLM Models - Production Ready|Open-Source LLM Models - Production Ready]]
+	- [[#Open-Source LLM Models - Production Ready#1. Llama Guard 3 (Meta AI) ⭐⭐⭐|1. Llama Guard 3 (Meta AI) ⭐⭐⭐]]
+	- [[#Open-Source LLM Models - Production Ready#2. ShieldGemma (Google DeepMind) ⭐⭐⭐|2. ShieldGemma (Google DeepMind) ⭐⭐⭐]]
+	- [[#Open-Source LLM Models - Production Ready#3. Mistral 7B (Base Model) ⭐⭐⭐|3. Mistral 7B (Base Model) ⭐⭐⭐]]
+	- [[#Open-Source LLM Models - Production Ready#4. WildGuard (AI2) ⭐⭐|4. WildGuard (AI2) ⭐⭐]]
+- [[#Why Other Models Are Not Included|Why Other Models Are Not Included]]
+	- [[#Why Other Models Are Not Included#API-Only Models (Not Suitable for Self-Hosting)|API-Only Models (Not Suitable for Self-Hosting)]]
+	- [[#Why Other Models Are Not Included#Traditional ML Models (Not LLM-Based)|Traditional ML Models (Not LLM-Based)]]
+	- [[#Why Other Models Are Not Included#Models Without French Support|Models Without French Support]]
+- [[#Model Selection Framework|Model Selection Framework]]
+	- [[#Model Selection Framework#Decision Tree for Shareish|Decision Tree for Shareish]]
+- [[#References|References]]
+	- [[#References#Academic Papers|Academic Papers]]
+	- [[#References#Model Repositories|Model Repositories]]
+	- [[#References#[[Datasets]]|[[Datasets]]]]
+	- [[#References#Documentation|Documentation]]
+- [[#Acknowledgments|Acknowledgments]]
 
 ---
-
 ## Model Comparison Table
 
 **Focus:** Only LLM-based models that can be self-hosted for GDPR compliance
 
-|Model|Parameters|Open Source|French Support|License|Performance (F1)|Inference Time|GPU Required|Use Case|Relevance|
-|---|---|---|---|---|---|---|---|---|---|
-|**Llama Guard 3-8B**|8B|✅ Yes|✅ Yes (8 langs)|Llama 3|~0.80|200-500ms|16GB VRAM|Primary moderation|⭐⭐⭐ Very High|
-|**Llama Guard 3-1B-INT4**|1B|✅ Yes|✅ Yes|Llama 3|~0.75|50-100ms|4GB VRAM or CPU|Resource-constrained|⭐⭐⭐ Very High|
-|**ShieldGemma 7B**|7B|✅ Yes|✅ Yes (FR included)|Gemma|0.75-0.85|100-500ms|16GB VRAM|Alternative primary|⭐⭐⭐ Very High|
-|**ShieldGemma 2B**|2B|✅ Yes|✅ Yes|Gemma|0.70-0.80|50-200ms|8GB VRAM|Fast alternative|⭐⭐ Medium-High|
-|**Mistral Moderation**|8B|⚠️ API Only|✅ Yes (11 langs)|Proprietary|0.80-0.90 est.|API latency|Cloud|Not for self-hosting|⭐ Low|
-|**Mistral 7B (base)**|7B|✅ Yes|✅ Yes (FR native)|Apache 2.0|Requires fine-tuning|100-300ms|14GB VRAM|Custom fine-tuning|⭐⭐⭐ Very High|
-|**WildGuard**|~7B|✅ Yes|❌ Limited|Apache 2.0|SOTA adversarial|200-500ms|14GB VRAM|Adversarial testing|⭐⭐ Medium|
-|**Llama 2-7B/13B**|7-13B|✅ Yes|⚠️ Limited|Llama 2|Requires fine-tuning|100-300ms|14-24GB VRAM|Base for custom|⭐⭐ Medium|
+| Model                     | Parameters | Open Source | French Support      | License     | Performance (F1)     | Inference Time | GPU Required    | Use Case             | Relevance      |
+| ------------------------- | ---------- | ----------- | ------------------- | ----------- | -------------------- | -------------- | --------------- | -------------------- | -------------- |
+| **Llama Guard 3-8B**      | 8B         | ✅ Yes       | ✅ Yes (8 langs)     | Llama 3     | ~0.80                | 200-500ms      | 16GB VRAM       | Primary moderation   | ⭐⭐⭐ Very High  |
+| **Llama Guard 3-1B-INT4** | 1B         | ✅ Yes       | ✅ Yes               | Llama 3     | ~0.75                | 50-100ms       | 4GB VRAM or CPU | Resource-constrained | ⭐⭐⭐ Very High  |
+| **ShieldGemma 7B**        | 7B         | ✅ Yes       | ✅ Yes (FR included) | Gemma       | 0.75-0.85            | 100-500ms      | 16GB VRAM       | Alternative primary  | ⭐⭐⭐ Very High  |
+| **ShieldGemma 2B**        | 2B         | ✅ Yes       | ✅ Yes               | Gemma       | 0.70-0.80            | 50-200ms       | 8GB VRAM        | Fast alternative     | ⭐⭐ Medium-High |
+| **Mistral Moderation**    | 8B         | ⚠️ API Only | ✅ Yes (11 langs)    | Proprietary | 0.80-0.90 est.       | API latency    | Cloud           | Not for self-hosting | ⭐ Low          |
+| **Mistral 7B (base)**     | 7B         | ✅ Yes       | ✅ Yes (FR native)   | Apache 2.0  | Requires fine-tuning | 100-300ms      | 14GB VRAM       | Custom fine-tuning   | ⭐⭐⭐ Very High  |
+| **WildGuard**             | ~7B        | ✅ Yes       | ❌ Limited           | Apache 2.0  | SOTA adversarial     | 200-500ms      | 14GB VRAM       | Adversarial testing  | ⭐⭐ Medium      |
+| **Llama 2-7B/13B**        | 7-13B      | ✅ Yes       | ⚠️ Limited          | Llama 2     | Requires fine-tuning | 100-300ms      | 14-24GB VRAM    | Base for custom      | ⭐⭐ Medium      |
 
 ---
 
