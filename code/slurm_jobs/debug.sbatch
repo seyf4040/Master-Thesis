@@ -2,8 +2,8 @@
 #SBATCH --job-name=llama_guard_toxigen
 #SBATCH --output=/home/sural/code/logs/llama_guard_%j.out
 #SBATCH --error=/home/sural/code/logs/llama_guard_%j.err
-#SBATCH --time=02:00:00
-#SBATCH --partition=2080ti
+#SBATCH --time=00:15:00
+#SBATCH --partition=a5000
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=4
@@ -56,7 +56,7 @@ python $SCRIPT_PATH \
     --output_dir $OUTPUT_DIR \
     --model_name meta-llama/Llama-Guard-3-8B \
     --batch_size 8 \
-    --max_samples 1000
+    --max_samples 10
 
 echo "=========================================="
 echo "Job completed at $(date)"
@@ -70,4 +70,4 @@ du -sh $OUTPUT_DIR
 echo "Copying results to home directory for backup..."
 cp -r $OUTPUT_DIR/* $HOME/results_backup/llama_guard_$(date +%Y%m%d)/
 
-echo "All done!"
+echo "All done!" 
