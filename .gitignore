@@ -176,3 +176,8 @@ combine-md.sh
 private/
 private*
 useful_commands.txt
+
+# === LaTeX build files ===
+latexmkrc
+thesis_report/auxilary/*
+*.synctex.gz
