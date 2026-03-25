@@ -166,8 +166,12 @@ cython_debug/
 # .obsidian-sync-vault/
 # .obsidian-sync-vault-sync/
 
-# Databases
+# Databases / local datasets
 datasets/
+code/datasets/
+
+# Evaluation results (generated output, not source)
+results/
 
 # Script used to create compilation file
 combine-md.sh
@@ -179,5 +183,4 @@ useful_commands.txt
 
 # === LaTeX build files ===
 latexmkrc
-thesis_report/auxilary/*
 *.synctex.gz
