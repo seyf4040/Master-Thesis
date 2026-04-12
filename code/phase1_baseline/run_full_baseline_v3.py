@@ -1,21 +1,32 @@
 #!/usr/bin/env python3
 """
-run_full_baseline_v2.py — Full Baseline Evaluation (v2)
-Tests all 10 content moderation models across all available datasets.
-Model inference implementations ported from model_exploration.ipynb.
+run_full_baseline_v3.py — Full Baseline Evaluation (v3)
+Best-of-breed model implementations selected from v1 and v2 experiments.
+
+Changes from v2:
+  - Llama Guard:  restored to official Llama Guard prompt format + `'unsafe' in response`
+                  (v2 used a Shareish prompt with a "safe"-in-"unsafe" substring bug → TPR≈0)
+  - Mistral:      restored to [INST] format + `'unsafe' in response`
+                  (v2 used the Llama-3 header format which Mistral does not follow)
+  - ShieldGemma:  replaced broken text-generation with token-probability scoring
+                  (forward pass only; P(Yes)>threshold → unsafe)
+  - KoalaAI:      restored threshold on sum of unsafe-class probabilities
+                  (v2 argmax always fires on a non-OK class for non-English text)
+  - CitizenLab:   kept from v2 (use_safetensors=True fixes the torch CVE-2025-32434 crash)
+  - EthicalEye:   kept from v2 (direct argmax on binary safe/unsafe logits)
+  - Detoxify:     unchanged across all versions
 
 Label convention: 1 = unsafe/toxic, 0 = safe
 
 Usage:
-    python run_full_baseline_v2.py \
-        --output_dir ~/code/results/full_baseline \
-        --datasets all \
-        --models all
+    python run_full_baseline_v3.py \\
+        --output_dir ~/code/results/full_baseline_v3 \\
+        --datasets all --models all
 
-    # Run only fast models on specific datasets:
-    python run_full_baseline_v2.py \
-        --output_dir ~/code/results/full_baseline \
-        --datasets hatecheck_fr,hatecheck_en,openai \
+    # Fast models only:
+    python run_full_baseline_v3.py \\
+        --output_dir ~/code/results/full_baseline_v3 \\
+        --datasets hatecheck_fr,hatecheck_en,openai \\
         --models detoxify_multilingual,koalaai,citizenlab
 """
 
@@ -227,43 +238,45 @@ def load_reddit(path: str, max_samples: Optional[int] = None) -> List[Sample]:
 
 # ── Prompt templates ───────────────────────────────────────────────────────────
 
-def _shareish_moderation_prompt(text: str) -> str:
-    """Shareish-tailored safety prompt used for Llama Guard and Mistral (from model_exploration.ipynb)."""
-    safety_policy = """
-Shareish is a solidarity-based sharing platform. The following content policies apply:
-
-1. **No Violent Content**: Content must not depict, glorify, or incite violence,
-   physical harm, or dangerous activities.
-
-2. **No Sexual Content**: Content must not be sexually explicit or suggestive.
-
-3. **No Harassment**: Content must not harass, bully, threaten, or shame individuals or groups.
-
-4. **No Discrimination**: Content must not promote discrimination based on race, ethnicity,
-   gender, sexual orientation, religion, disability, or other protected characteristics.
-
-5. **No Selling**: Only free sharing or donations are allowed. Content offering items or
-   services for sale is prohibited.
-
-6. **No Hate Speech**: Content must not express hatred or incite violence against individuals
-   or groups based on protected characteristics.
-"""
+def _llama_guard_prompt(text: str) -> str:
+    """Official Llama Guard 3 prompt format. Model outputs 'safe' or 'unsafe'."""
     return (
-        f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n"
-        f"Task: Check if the following user message complies with our platform's safety policy.\n\n"
-        f"Safety Policy:\n{safety_policy}\n\n"
-        f"User Message:\n{text}\n"
-        f"<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n"
+        "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n"
+        "Task: Check if there is unsafe content in 'User' messages according to our safety policy.\n\n"
+        "<BEGIN UNSAFE CONTENT CATEGORIES>\n"
+        "S1: Violent Crimes. S2: Non-Violent Crimes. S3: Sex Crimes.\n"
+        "S4: Child Exploitation. S5: Defamation. S6: Specialized Advice.\n"
+        "S7: Privacy. S8: Intellectual Property. S9: Indiscriminate Weapons.\n"
+        "S10: Hate. S11: Self-Harm. S12: Sexual Content.\n"
+        "<END UNSAFE CONTENT CATEGORIES>\n\n"
+        f"<BEGIN CONVERSATION>\nUser: {text}\n<END CONVERSATION>\n\n"
+        "Provide your safety assessment:\n"
+        "- First line must read 'safe' or 'unsafe'.\n"
+        "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n"
+    )
+
+
+def _mistral_prompt(text: str) -> str:
+    """Mistral [INST] format. Model outputs 'SAFE' or 'UNSAFE'."""
+    return (
+        "[INST] You are a content moderation assistant. "
+        "Classify the following text. Respond ONLY with 'SAFE' or 'UNSAFE'.\n\n"
+        f"Text: {text.strip()}\n\n"
+        "Classification: [/INST]"
     )
 
 
 def _shieldgemma_prompt(text: str) -> str:
-    """Simple classification prompt for ShieldGemma (from model_exploration.ipynb)."""
+    """ShieldGemma harm-assessment prompt. Used for token-probability scoring (not generation)."""
     return (
-        "You are a content moderation assistant. "
-        "Determine if the following content is safe or unsafe.\n\n"
-        f"Content: {text}\n\n"
-        "Classification:"
+        "You are a policy expert trying to help determine whether a user "
+        "message is in violation of safety policies.\n\n"
+        "<start_of_turn>user\n"
+        f"{text}\n"
+        "<end_of_turn>\n\n"
+        "Does the above message contain hate speech, harassment, violence, "
+        "or other harmful content? Answer only 'Yes' or 'No'.\n"
+        "<start_of_turn>model\n"
     )
 
 
@@ -301,15 +314,13 @@ def test_detoxify(variant: str, samples: List[Sample], dataset_name: str,
 
 
 def test_ethicaleye(samples: List[Sample], dataset_name: str) -> Result:
-    """EthicalEye: argmax of logits directly gives 0=safe, 1=unsafe (from model_exploration.ipynb)."""
+    """EthicalEye: binary classifier, argmax gives 0=safe, 1=unsafe directly."""
     from transformers import AutoTokenizer, AutoModelForSequenceClassification
     model_id = "autopilot-ai/EthicalEye"
     print(f"  [EthicalEye] Loading {model_id}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_id,
-        torch_dtype=torch.float32,
-        device_map="auto",
+        model_id, torch_dtype=torch.float32, device_map="auto",
     )
     model.eval()
     if torch.cuda.is_available():
@@ -327,13 +338,11 @@ def test_ethicaleye(samples: List[Sample], dataset_name: str) -> Result:
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model(**inputs)
-                logits = outputs.logits
+                logits = model(**inputs).logits
                 predicted_class = torch.argmax(logits, dim=1).item()
             times.append((time.time() - ts) * 1000)
-            # EthicalEye: 0 = safe, 1 = unsafe
             y_true.append(s['label'])
-            y_pred.append(predicted_class)
+            y_pred.append(predicted_class)  # 0=safe, 1=unsafe
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
@@ -344,16 +353,17 @@ def test_ethicaleye(samples: List[Sample], dataset_name: str) -> Result:
                          y_true, y_pred, times, cpu_pcts, errors)
 
 
-def test_koalaai(samples: List[Sample], dataset_name: str) -> Result:
-    """KoalaAI: argmax of softmax probabilities; class 0 (OK) = safe, any other = unsafe (from model_exploration.ipynb)."""
+def test_koalaai(samples: List[Sample], dataset_name: str,
+                 threshold: float = 0.5) -> Result:
+    """KoalaAI: threshold on the summed probability of all unsafe categories.
+    Argmax is avoided because it always fires on a non-OK class for non-English text."""
     from transformers import AutoTokenizer, AutoModelForSequenceClassification
     model_id = "KoalaAI/Text-Moderation"
+    NON_SAFE = {'H', 'SH', 'V', 'S', 'HR', 'V2', 'S3', 'H2'}
     print(f"  [KoalaAI] Loading {model_id}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_id,
-        torch_dtype=torch.float32,
-        device_map="auto",
+        model_id, torch_dtype=torch.float32, device_map="auto",
     )
     model.eval()
     if torch.cuda.is_available():
@@ -362,6 +372,7 @@ def test_koalaai(samples: List[Sample], dataset_name: str) -> Result:
     y_true, y_pred, times, cpu_pcts = [], [], [], []
     errors = 0
     proc = psutil.Process()
+    id2label = model.config.id2label
     t0 = time.time()
 
     for i, s in tqdm(enumerate(samples), total=len(samples), desc="KoalaAI", unit="sample", leave=False):
@@ -371,14 +382,13 @@ def test_koalaai(samples: List[Sample], dataset_name: str) -> Result:
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model(**inputs)
-                logits = outputs.logits
-                probs = torch.softmax(logits, dim=1)
-                predicted_class = torch.argmax(probs, dim=1).item()
+                probs = model(**inputs).logits.softmax(dim=-1).squeeze()
             times.append((time.time() - ts) * 1000)
-            # KoalaAI: 0 = safe (OK class), any non-zero class = unsafe category
+            unsafe_prob = sum(
+                probs[idx].item() for idx, lbl in id2label.items() if lbl in NON_SAFE
+            )
             y_true.append(s['label'])
-            y_pred.append(0 if predicted_class == 0 else 1)
+            y_pred.append(1 if unsafe_prob > threshold else 0)
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
@@ -390,16 +400,14 @@ def test_koalaai(samples: List[Sample], dataset_name: str) -> Result:
 
 
 def test_citizenlab(samples: List[Sample], dataset_name: str) -> Result:
-    """CitizenLab: negative sentiment probability > 0.6 → unsafe (from model_exploration.ipynb)."""
+    """CitizenLab: negative-sentiment probability > 0.6 → unsafe.
+    use_safetensors=True avoids the torch CVE-2025-32434 crash."""
     from transformers import AutoTokenizer, AutoModelForSequenceClassification
     model_id = "citizenlab/twitter-xlm-roberta-base-sentiment-finetunned"
     print(f"  [CitizenLab] Loading {model_id}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_id,
-        use_safetensors=True,
-        torch_dtype=torch.float32,
-        device_map="auto",
+        model_id, use_safetensors=True, torch_dtype=torch.float32, device_map="auto",
     )
     model.eval()
     if torch.cuda.is_available():
@@ -417,13 +425,9 @@ def test_citizenlab(samples: List[Sample], dataset_name: str) -> Result:
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model(**inputs)
-                logits = outputs.logits
-                probs = torch.softmax(logits, dim=1)
-                # Model outputs: [Negative, Neutral, Positive]
-                negative_prob = probs[0][0].item()
+                probs = model(**inputs).logits.softmax(dim=-1)
+                negative_prob = probs[0][0].item()  # [Negative, Neutral, Positive]
             times.append((time.time() - ts) * 1000)
-            # Negative sentiment > 0.6 threshold treated as unsafe
             y_true.append(s['label'])
             y_pred.append(1 if negative_prob > 0.6 else 0)
         except Exception as e:
@@ -437,7 +441,9 @@ def test_citizenlab(samples: List[Sample], dataset_name: str) -> Result:
 
 
 def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> Result:
-    """Llama Guard with Shareish moderation prompt (from model_exploration.ipynb)."""
+    """Llama Guard 3: official safety prompt format. Checks 'unsafe' in generated text.
+    Using the original Llama Guard prompt (not a Shareish-specific one) so that the
+    model's 'safe'/'unsafe' first-token output is reliable."""
     from transformers import AutoTokenizer, AutoModelForCausalLM
     model_id   = f"meta-llama/Llama-Guard-3-{variant}"
     model_name = f"Llama-Guard-3-{variant}"
@@ -445,7 +451,7 @@ def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> 
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, device_map="auto",
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     )
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -457,20 +463,17 @@ def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> 
 
     for i, s in tqdm(enumerate(samples), total=len(samples), desc=model_name, unit="sample", leave=False):
         try:
-            prompt = _shareish_moderation_prompt(s['text'])
-            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+            prompt  = _llama_guard_prompt(s['text'])
+            inputs  = tokenizer(prompt, return_tensors="pt").to(model.device)
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model.generate(
-                    **inputs,
-                    max_new_tokens=10,
-                    pad_token_id=tokenizer.eos_token_id,
-                )
+                output = model.generate(**inputs, max_new_tokens=100, pad_token_id=0)
             times.append((time.time() - ts) * 1000)
-            response = tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+            new_tokens = output[0][inputs['input_ids'].shape[1]:]
+            response   = tokenizer.decode(new_tokens, skip_special_tokens=True).lower()
             y_true.append(s['label'])
-            y_pred.append(0 if "safe" in response.lower() else 1)
+            y_pred.append(1 if 'unsafe' in response else 0)
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
@@ -481,19 +484,27 @@ def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> 
                          y_true, y_pred, times, cpu_pcts, errors)
 
 
-def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str) -> Result:
-    """ShieldGemma with simple classification prompt (from model_exploration.ipynb)."""
+def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str,
+                     threshold: float = 0.5) -> Result:
+    """ShieldGemma: token-probability scoring at the first generated position.
+    Computes P('Yes') / (P('Yes') + P('No')) — faster than generate() and avoids
+    text-parsing bugs. 'Yes' = harmful, 'No' = safe."""
     from transformers import AutoTokenizer, AutoModelForCausalLM
     model_id   = f"google/shieldgemma-{variant}"
     model_name = f"ShieldGemma-{variant}"
-    print(f"  [{model_name}] Loading...")
+    print(f"  [{model_name}] Loading (token-probability mode)...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, device_map="auto",
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     )
+    model.eval()
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
+
+    # Resolve Yes/No token IDs once
+    yes_id = tokenizer.encode("Yes", add_special_tokens=False)[-1]
+    no_id  = tokenizer.encode("No",  add_special_tokens=False)[-1]
 
     y_true, y_pred, times, cpu_pcts = [], [], [], []
     errors = 0
@@ -503,19 +514,17 @@ def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str) -> 
     for i, s in tqdm(enumerate(samples), total=len(samples), desc=model_name, unit="sample", leave=False):
         try:
             prompt = _shieldgemma_prompt(s['text'])
-            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+            inputs = tokenizer(prompt, return_tensors="pt",
+                               truncation=True, max_length=1024).to(model.device)
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model.generate(
-                    **inputs,
-                    max_new_tokens=10,
-                    pad_token_id=tokenizer.eos_token_id,
-                )
+                logits = model(**inputs).logits[0, -1, :]   # last-position logits
             times.append((time.time() - ts) * 1000)
-            response = tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+            yes_no_probs = torch.softmax(logits[[yes_id, no_id]], dim=0)
+            unsafe_prob  = yes_no_probs[0].item()           # P(Yes = harmful)
             y_true.append(s['label'])
-            y_pred.append(0 if "safe" in response.lower() else 1)
+            y_pred.append(1 if unsafe_prob > threshold else 0)
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
@@ -527,14 +536,15 @@ def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str) -> 
 
 
 def test_mistral(samples: List[Sample], dataset_name: str) -> Result:
-    """Mistral-7B with Shareish moderation prompt and bfloat16 (from model_exploration.ipynb)."""
+    """Mistral-7B: [INST] format (Mistral native), checks 'unsafe' in generated text.
+    bfloat16 for memory efficiency."""
     from transformers import AutoTokenizer, AutoModelForCausalLM
     model_id = "mistralai/Mistral-7B-Instruct-v0.3"
     print(f"  [Mistral-7B] Loading...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, device_map="auto",
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     )
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -546,20 +556,19 @@ def test_mistral(samples: List[Sample], dataset_name: str) -> Result:
 
     for i, s in tqdm(enumerate(samples), total=len(samples), desc="Mistral-7B", unit="sample", leave=False):
         try:
-            prompt = _shareish_moderation_prompt(s['text'])
-            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+            prompt = _mistral_prompt(s['text'])
+            inputs = tokenizer(prompt, return_tensors="pt",
+                               max_length=1024, truncation=True).to(model.device)
             cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                outputs = model.generate(
-                    **inputs,
-                    max_new_tokens=10,
-                    pad_token_id=tokenizer.eos_token_id,
-                )
+                output = model.generate(**inputs, max_new_tokens=10,
+                                        pad_token_id=tokenizer.eos_token_id)
             times.append((time.time() - ts) * 1000)
-            response = tokenizer.decode(outputs[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+            new_tokens = output[0][inputs['input_ids'].shape[1]:]
+            response   = tokenizer.decode(new_tokens, skip_special_tokens=True).strip().lower()
             y_true.append(s['label'])
-            y_pred.append(0 if "safe" in response.lower() else 1)
+            y_pred.append(1 if 'unsafe' in response else 0)
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
@@ -572,9 +581,6 @@ def test_mistral(samples: List[Sample], dataset_name: str) -> Result:
 
 # ── Model registry ────────────────────────────────────────────────────────────
 
-# Minimum VRAM (GB) required to run each model fully on GPU.
-# If available VRAM is below this, the model is skipped instead of
-# silently offloading to CPU (which causes near-infinite runtimes).
 MODEL_MIN_VRAM_GB = {
     'detoxify_multilingual': 2,
     'detoxify_unbiased':     2,
@@ -588,35 +594,14 @@ MODEL_MIN_VRAM_GB = {
     'mistral_7b':           15,
 }
 
-
-def check_vram(model_key: str) -> bool:
-    """Returns False (and prints a warning) if GPU has insufficient VRAM."""
-    if not torch.cuda.is_available():
-        return True  # CPU-only run, no check needed
-    available_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
-    required_gb  = MODEL_MIN_VRAM_GB.get(model_key, 0)
-    if available_gb < required_gb:
-        print(f"  SKIPPED [{model_key}]: requires ~{required_gb}GB VRAM, "
-              f"only {available_gb:.1f}GB available. "
-              f"Re-run on a GPU with sufficient VRAM.")
-        return False
-    return True
-
-
 ALL_MODELS = [
-    'detoxify_multilingual',
-    'detoxify_unbiased',
-    'koalaai',
-    'ethicaleye',
-    'citizenlab',
-    'llama_guard_1b',
-    'llama_guard_8b',
-    'shieldgemma_2b',
-    'shieldgemma_9b',
+    'detoxify_multilingual', 'detoxify_unbiased',
+    'koalaai', 'ethicaleye', 'citizenlab',
+    'llama_guard_1b', 'llama_guard_8b',
+    'shieldgemma_2b', 'shieldgemma_9b',
     'mistral_7b',
 ]
 
-# Maps model key → display name used in filenames and Result.model
 MODEL_DISPLAY = {
     'detoxify_multilingual': 'detoxify-multilingual',
     'detoxify_unbiased':     'detoxify-unbiased',
@@ -631,9 +616,20 @@ MODEL_DISPLAY = {
 }
 
 
+def check_vram(model_key: str) -> bool:
+    if not torch.cuda.is_available():
+        return True
+    available_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
+    required_gb  = MODEL_MIN_VRAM_GB.get(model_key, 0)
+    if available_gb < required_gb:
+        print(f"  SKIPPED [{model_key}]: requires ~{required_gb}GB VRAM, "
+              f"only {available_gb:.1f}GB available.")
+        return False
+    return True
+
+
 def run_model(model_key: str, samples: List[Sample], dataset_name: str,
               device: str, threshold: float) -> Optional[Result]:
-    """Dispatch to the appropriate model tester."""
     if not check_vram(model_key):
         return None
     try:
@@ -642,7 +638,7 @@ def run_model(model_key: str, samples: List[Sample], dataset_name: str,
         elif model_key == 'detoxify_unbiased':
             return test_detoxify('unbiased', samples, dataset_name, device, threshold)
         elif model_key == 'koalaai':
-            return test_koalaai(samples, dataset_name)
+            return test_koalaai(samples, dataset_name, threshold)
         elif model_key == 'ethicaleye':
             return test_ethicaleye(samples, dataset_name)
         elif model_key == 'citizenlab':
@@ -652,9 +648,9 @@ def run_model(model_key: str, samples: List[Sample], dataset_name: str,
         elif model_key == 'llama_guard_8b':
             return test_llama_guard('8B', samples, dataset_name)
         elif model_key == 'shieldgemma_2b':
-            return test_shieldgemma('2b', samples, dataset_name)
+            return test_shieldgemma('2b', samples, dataset_name, threshold)
         elif model_key == 'shieldgemma_9b':
-            return test_shieldgemma('9b', samples, dataset_name)
+            return test_shieldgemma('9b', samples, dataset_name, threshold)
         elif model_key == 'mistral_7b':
             return test_mistral(samples, dataset_name)
         else:
@@ -689,7 +685,7 @@ def already_done(output_dir: Path, dataset: str, model_display: str) -> bool:
 def load_all_results(output_dir: Path) -> List[Result]:
     results = []
     for p in sorted(output_dir.rglob("*.json")):
-        if p.name in ("summary.json",):
+        if p.name == "summary.json":
             continue
         try:
             with open(p) as f:
@@ -703,16 +699,14 @@ def generate_summary(results: List[Result], output_dir: Path):
     datasets = sorted(set(r.dataset for r in results))
     models   = sorted(set(r.model   for r in results))
 
-    # ── Text summary ──────────────────────────────────────────────────────────
     txt_path = output_dir / "summary.txt"
     with open(txt_path, 'w') as f:
-        f.write("FULL BASELINE EVALUATION SUMMARY\n")
+        f.write("FULL BASELINE EVALUATION SUMMARY (v3)\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 120 + "\n\n")
         f.write(f"Datasets ({len(datasets)}): {', '.join(datasets)}\n")
         f.write(f"Models   ({len(models)}):   {', '.join(models)}\n\n")
 
-        # Per-dataset performance table
         for ds in datasets:
             ds_results = sorted(
                 [r for r in results if r.dataset == ds],
@@ -720,7 +714,7 @@ def generate_summary(results: List[Result], output_dir: Path):
             )
             if not ds_results:
                 continue
-            n = ds_results[0].num_samples
+            n     = ds_results[0].num_samples
             n_pos = ds_results[0].tp + ds_results[0].fn
             f.write(f"\n{'='*120}\n")
             f.write(f"DATASET: {ds.upper()}  (n={n}, unsafe={n_pos}, safe={n-n_pos})\n")
@@ -739,14 +733,10 @@ def generate_summary(results: List[Result], output_dir: Path):
                     f"{r.errors:>5} {r.avg_inference_ms:>8.2f}\n"
                 )
 
-        # F1 matrix across all datasets
         col_w = 16
-        f.write(f"\n\n{'='*120}\n")
-        f.write("F1-SCORE MATRIX\n")
-        f.write(f"{'='*120}\n")
+        f.write(f"\n\n{'='*120}\nF1-SCORE MATRIX\n{'='*120}\n")
         header = f"{'Model':<35}" + "".join(f"{d[:col_w-1]:>{col_w}}" for d in datasets)
-        f.write(header + "\n")
-        f.write("-" * len(header) + "\n")
+        f.write(header + "\n" + "-" * len(header) + "\n")
         for m in sorted(models, key=lambda x: -max(
             (r.f1 for r in results if r.model == x), default=0
         )):
@@ -756,10 +746,7 @@ def generate_summary(results: List[Result], output_dir: Path):
                 row += f"{'N/A':>{col_w}}" if val is None else f"{val:>{col_w}.4f}"
             f.write(row + "\n")
 
-        # Energy summary
-        f.write(f"\n\n{'='*120}\n")
-        f.write("ENERGY SUMMARY\n")
-        f.write(f"{'='*120}\n")
+        f.write(f"\n\n{'='*120}\nENERGY SUMMARY\n{'='*120}\n")
         f.write(f"{'Model':<35} {'Energy (kWh)':>14} {'CO2 (kg)':>12}\n")
         f.write("-" * 65 + "\n")
         for m in models:
@@ -768,17 +755,14 @@ def generate_summary(results: List[Result], output_dir: Path):
             f.write(f"{m:<35} {total_e:>14.6f} {total_co:>12.6f}\n")
         grand_e  = sum(r.energy_kwh for r in results)
         grand_co = sum(r.co2_kg     for r in results)
-        f.write("-" * 65 + "\n")
         f.write(f"{'TOTAL':<35} {grand_e:>14.6f} {grand_co:>12.6f}\n")
 
-    # ── JSON summary ──────────────────────────────────────────────────────────
     json_path = output_dir / "summary.json"
     data = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "num_models": len(models),
-        "num_datasets": len(datasets),
-        "models": models,
-        "datasets": datasets,
+        "version": "v3",
+        "num_models": len(models), "num_datasets": len(datasets),
+        "models": models, "datasets": datasets,
         "f1_matrix": {
             m: {ds: next((r.f1 for r in results if r.model == m and r.dataset == ds), None)
                 for ds in datasets}
@@ -802,15 +786,11 @@ ALL_DATASET_KEYS = [
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Full baseline evaluation v2: all 10 models × all available datasets',
+        description='Full baseline evaluation v3: best-of-breed model implementations',
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    # Output
-    parser.add_argument('--output_dir', required=True,
-                        help='Directory to write results into')
-    parser.add_argument('--cache_dir',  default=str(Path.home() / 'datasets/cache'),
-                        help='HuggingFace dataset cache directory')
-    # Local dataset paths
+    parser.add_argument('--output_dir', required=True)
+    parser.add_argument('--cache_dir',  default=str(Path.home() / 'datasets/cache'))
     parser.add_argument('--openai_path',
                         default=str(Path.home() / 'datasets/openai/samples-1680.jsonl'))
     parser.add_argument('--toxigen_path',
@@ -819,25 +799,19 @@ def main():
                         default=str(Path.home() / 'datasets/reddit/balanced/data-en/test-en.csv'))
     parser.add_argument('--reddit_fr_path',
                         default=str(Path.home() / 'datasets/reddit/balanced/data-fr/test-fr.csv'))
-    # Selection
     parser.add_argument('--datasets', default='all',
                         help=f'Comma-separated or "all". Keys: {",".join(ALL_DATASET_KEYS)}')
     parser.add_argument('--models',   default='all',
                         help=f'Comma-separated or "all". Keys: {",".join(ALL_MODELS)}')
-    # Sampling limits
-    parser.add_argument('--max_samples',         type=int, default=None,
-                        help='Max samples for HateCheck/OpenAI/Reddit (default: all)')
+    parser.add_argument('--max_samples',         type=int, default=None)
     parser.add_argument('--max_samples_toxigen', type=int, default=5000)
     parser.add_argument('--max_samples_civil',   type=int, default=5000)
     parser.add_argument('--threshold',           type=float, default=0.5,
-                        help='Toxicity probability threshold for Detoxify (default: 0.5)')
-    # Checkpointing
+                        help='Probability threshold for detoxify, KoalaAI, ShieldGemma (default: 0.5)')
     parser.add_argument('--no_skip', action='store_true',
                         help='Rerun evaluations even if result file already exists')
-    # Multiple runs
     parser.add_argument('--run_id', type=int, default=None,
-                        help='Run ID for statistical analysis (saves to {output_dir}/run_{n}/). '
-                             'Omit for a single unnamed run.')
+                        help='Run ID for multi-run stats (saves to {output_dir}/run_{n}/)')
 
     args = parser.parse_args()
 
@@ -852,7 +826,7 @@ def main():
         print(f"GPU:    {torch.cuda.get_device_name(0)}")
         print(f"VRAM:   {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
 
-    skip_done   = not args.no_skip
+    skip_done    = not args.no_skip
     dataset_keys = (ALL_DATASET_KEYS if args.datasets.strip() == 'all'
                     else [d.strip() for d in args.datasets.split(',')])
     model_keys   = (ALL_MODELS if args.models.strip() == 'all'
@@ -867,10 +841,7 @@ def main():
     pair_idx    = 0
 
     for dataset_key in dataset_keys:
-        print(f"\n{'='*80}")
-        print(f"LOADING DATASET: {dataset_key}")
-        print(f"{'='*80}")
-
+        print(f"\n{'='*80}\nLOADING DATASET: {dataset_key}\n{'='*80}")
         try:
             if dataset_key == 'hatecheck_fr':
                 samples = load_hatecheck_fr(args.cache_dir, args.max_samples)
@@ -914,14 +885,11 @@ def main():
                 save_result(result, output_dir)
                 print(f"  Acc={result.accuracy:.4f}  Prec={result.precision:.4f}  "
                       f"Rec={result.recall:.4f}  F1={result.f1:.4f}  "
-                      f"FPR={result.false_positive_rate:.4f}  "
-                      f"Err={result.errors}")
+                      f"FPR={result.false_positive_rate:.4f}  Err={result.errors}")
 
     total_runtime = time.time() - experiment_start
-    print(f"\n{'='*80}")
-    print(f"Total runtime: {fmt_time(total_runtime)}")
+    print(f"\n{'='*80}\nTotal runtime: {fmt_time(total_runtime)}")
 
-    # Final summary from all saved results
     print(f"\n{'='*80}\nGenerating summary...\n{'='*80}")
     all_results = load_all_results(output_dir)
     if all_results:

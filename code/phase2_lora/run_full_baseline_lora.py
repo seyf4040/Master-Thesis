@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 """
-run_full_baseline.py — Full Baseline Evaluation
-Tests all 10 content moderation models across all available datasets.
+run_full_baseline_lora.py — Full Baseline Evaluation with LoRA adapters (Phase 2)
 
-Label convention: 1 = unsafe/toxic, 0 = safe
+Identical to run_full_baseline_v3.py except:
+  - Adds llama_guard_1b_lora and shieldgemma_2b_lora model keys
+  - Loads PEFT adapter weights on top of the base model for those two keys
+  - All 10 v3 base models are still included for direct v3-vs-LoRA comparison
+
+LoRA adapter paths:
+  --lora_adapter_llama   path to the llama_guard_1b adapter dir (best/ or final/)
+  --lora_adapter_gemma   path to the shieldgemma_2b  adapter dir (best/ or final/)
 
 Usage:
-    python run_full_baseline.py \
-        --output_dir ~/code/results/full_baseline \
-        --datasets all \
-        --models all
+    python code/run_full_baseline_lora.py \\
+        --output_dir ~/code/results/full_baseline_lora \\
+        --lora_adapter_llama ~/code/results/lora_adapters/llama_guard_1b/french_hate_superset/best \\
+        --lora_adapter_gemma ~/code/results/lora_adapters/shieldgemma_2b/french_hate_superset/best \\
+        --datasets all --models all --no_skip
 
-    # Run only fast models on specific datasets:
-    python run_full_baseline.py \
-        --output_dir ~/code/results/full_baseline \
-        --datasets hatecheck_fr,hatecheck_en,openai \
-        --models detoxify_multilingual,koalaai,citizenlab
+    # LoRA models only (skip v3 baselines):
+    python code/run_full_baseline_lora.py \\
+        --output_dir ~/code/results/full_baseline_lora \\
+        --lora_adapter_llama ~/code/results/lora_adapters/llama_guard_1b/french_hate_superset/best \\
+        --models llama_guard_1b_lora \\
+        --datasets all
 """
 
 import gc
@@ -224,123 +232,9 @@ def load_reddit(path: str, max_samples: Optional[int] = None) -> List[Sample]:
     return samples[:max_samples] if max_samples else samples
 
 
-# ── Model testers ─────────────────────────────────────────────────────────────
+# ── Prompt templates ──────────────────────────────────────────────────────────
 
-def test_detoxify(variant: str, samples: List[Sample], dataset_name: str,
-                  device: str, threshold: float = 0.5) -> Result:
-    from detoxify import Detoxify
-    print(f"  [detoxify-{variant}] Loading...")
-    model = Detoxify(variant, device=device)
-    if torch.cuda.is_available():
-        torch.cuda.reset_peak_memory_stats()
-
-    y_true, y_pred, times, cpu_pcts = [], [], [], []
-    errors = 0
-    proc = psutil.Process()
-    t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc=f"detoxify-{variant}", unit="sample", leave=False):
-        try:
-            ts = time.time()
-            result = model.predict(s['text'])
-            times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
-            y_true.append(s['label'])
-            y_pred.append(1 if result['toxicity'] > threshold else 0)
-        except Exception as e:
-            errors += 1
-            print(f"    Error sample {i}: {e}")
-
-    del model
-    _free_gpu()
-    return _build_result(f"detoxify-{variant}", dataset_name, t0,
-                         y_true, y_pred, times, cpu_pcts, errors)
-
-
-def test_hf_sequence_classifier(model_id: str, model_name: str, non_safe_labels: set,
-                                 samples: List[Sample], dataset_name: str,
-                                 threshold: float = 0.5) -> Result:
-    """Generic tester for AutoModelForSequenceClassification (KoalaAI, EthicalEye)."""
-    from transformers import AutoTokenizer, AutoModelForSequenceClassification
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"  [{model_name}] Loading {model_id}...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForSequenceClassification.from_pretrained(model_id).to(device)
-    model.eval()
-    if torch.cuda.is_available():
-        torch.cuda.reset_peak_memory_stats()
-
-    y_true, y_pred, times, cpu_pcts = [], [], [], []
-    errors = 0
-    proc = psutil.Process()
-    t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc=model_name, unit="sample", leave=False):
-        try:
-            inputs = tokenizer(s['text'], return_tensors="pt",
-                               max_length=512, truncation=True).to(device)
-            ts = time.time()
-            with torch.no_grad():
-                outputs = model(**inputs)
-            times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
-
-            probs    = outputs.logits.softmax(dim=-1).squeeze()
-            id2label = model.config.id2label
-            max_unsafe = max(
-                (probs[idx].item() for idx, lbl in id2label.items() if lbl in non_safe_labels),
-                default=0.0,
-            )
-            y_true.append(s['label'])
-            y_pred.append(1 if max_unsafe > threshold else 0)
-        except Exception as e:
-            errors += 1
-            print(f"    Error sample {i}: {e}")
-
-    del model, tokenizer
-    _free_gpu()
-    return _build_result(model_name, dataset_name, t0,
-                         y_true, y_pred, times, cpu_pcts, errors)
-
-
-def test_citizenlab(samples: List[Sample], dataset_name: str,
-                    threshold: float = 0.5) -> Result:
-    from transformers import pipeline
-    model_id = "citizenlab/twitter-xlm-roberta-base-sentiment-finetunned"
-    device   = 0 if torch.cuda.is_available() else -1
-    print(f"  [CitizenLab] Loading {model_id}...")
-    clf = pipeline("text-classification", model=model_id, device=device,
-                   truncation=True, max_length=512)
-    if torch.cuda.is_available():
-        torch.cuda.reset_peak_memory_stats()
-
-    y_true, y_pred, times, cpu_pcts = [], [], [], []
-    errors = 0
-    proc = psutil.Process()
-    t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc="CitizenLab", unit="sample", leave=False):
-        try:
-            ts  = time.time()
-            res = clf(s['text'][:512])
-            times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
-            lbl, score = res[0]['label'], res[0]['score']
-            # 'toxic' label → unsafe prob = score; 'non-toxic' → unsafe prob = 1-score
-            unsafe_prob = score if lbl.lower() == 'toxic' else 1.0 - score
-            y_true.append(s['label'])
-            y_pred.append(1 if unsafe_prob > threshold else 0)
-        except Exception as e:
-            errors += 1
-            print(f"    Error sample {i}: {e}")
-
-    del clf
-    _free_gpu()
-    return _build_result("CitizenLab-XLM-RoBERTa", dataset_name, t0,
-                         y_true, y_pred, times, cpu_pcts, errors)
-
-
-def _llama_prompt(text: str) -> str:
+def _llama_guard_prompt(text: str) -> str:
     return (
         "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n"
         "Task: Check if there is unsafe content in 'User' messages according to our safety policy.\n\n"
@@ -357,6 +251,175 @@ def _llama_prompt(text: str) -> str:
     )
 
 
+def _mistral_prompt(text: str) -> str:
+    return (
+        "[INST] You are a content moderation assistant. "
+        "Classify the following text. Respond ONLY with 'SAFE' or 'UNSAFE'.\n\n"
+        f"Text: {text.strip()}\n\n"
+        "Classification: [/INST]"
+    )
+
+
+def _shieldgemma_prompt(text: str) -> str:
+    return (
+        "You are a policy expert trying to help determine whether a user "
+        "message is in violation of safety policies.\n\n"
+        "<start_of_turn>user\n"
+        f"{text}\n"
+        "<end_of_turn>\n\n"
+        "Does the above message contain hate speech, harassment, violence, "
+        "or other harmful content? Answer only 'Yes' or 'No'.\n"
+        "<start_of_turn>model\n"
+    )
+
+
+# ── v3 base model testers (unchanged from run_full_baseline_v3.py) ────────────
+
+def test_detoxify(variant: str, samples: List[Sample], dataset_name: str,
+                  device: str, threshold: float = 0.5) -> Result:
+    from detoxify import Detoxify
+    print(f"  [detoxify-{variant}] Loading...")
+    model = Detoxify(variant, device=device)
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    t0 = time.time()
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc=f"detoxify-{variant}", unit="sample", leave=False):
+        try:
+            ts = time.time()
+            result = model.predict(s['text'])
+            times.append((time.time() - ts) * 1000)
+            cpu_pcts.append(proc.cpu_percent())
+            y_true.append(s['label'])
+            y_pred.append(1 if result['toxicity'] > threshold else 0)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+    del model
+    _free_gpu()
+    return _build_result(f"detoxify-{variant}", dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
+def test_ethicaleye(samples: List[Sample], dataset_name: str) -> Result:
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    model_id = "autopilot-ai/EthicalEye"
+    print(f"  [EthicalEye] Loading {model_id}...")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_id, torch_dtype=torch.float32, device_map="auto",
+    )
+    model.eval()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    t0 = time.time()
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc="EthicalEye", unit="sample", leave=False):
+        try:
+            inputs = tokenizer(s['text'], return_tensors="pt",
+                               truncation=True, max_length=512).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
+            ts = time.time()
+            with torch.no_grad():
+                logits = model(**inputs).logits
+                predicted_class = torch.argmax(logits, dim=1).item()
+            times.append((time.time() - ts) * 1000)
+            y_true.append(s['label'])
+            y_pred.append(predicted_class)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+    del model, tokenizer
+    _free_gpu()
+    return _build_result("EthicalEye", dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
+def test_koalaai(samples: List[Sample], dataset_name: str,
+                 threshold: float = 0.5) -> Result:
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    model_id = "KoalaAI/Text-Moderation"
+    NON_SAFE = {'H', 'SH', 'V', 'S', 'HR', 'V2', 'S3', 'H2'}
+    print(f"  [KoalaAI] Loading {model_id}...")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_id, torch_dtype=torch.float32, device_map="auto",
+    )
+    model.eval()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    id2label = model.config.id2label
+    t0 = time.time()
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc="KoalaAI", unit="sample", leave=False):
+        try:
+            inputs = tokenizer(s['text'], return_tensors="pt",
+                               truncation=True, max_length=512).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
+            ts = time.time()
+            with torch.no_grad():
+                probs = model(**inputs).logits.softmax(dim=-1).squeeze()
+            times.append((time.time() - ts) * 1000)
+            unsafe_prob = sum(
+                probs[idx].item() for idx, lbl in id2label.items() if lbl in NON_SAFE
+            )
+            y_true.append(s['label'])
+            y_pred.append(1 if unsafe_prob > threshold else 0)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+    del model, tokenizer
+    _free_gpu()
+    return _build_result("KoalaAI-Text-Moderation", dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
+def test_citizenlab(samples: List[Sample], dataset_name: str) -> Result:
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    model_id = "citizenlab/twitter-xlm-roberta-base-sentiment-finetunned"
+    print(f"  [CitizenLab] Loading {model_id}...")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_id, use_safetensors=True, torch_dtype=torch.float32, device_map="auto",
+    )
+    model.eval()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    t0 = time.time()
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc="CitizenLab", unit="sample", leave=False):
+        try:
+            inputs = tokenizer(s['text'], return_tensors="pt",
+                               truncation=True, max_length=512).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
+            ts = time.time()
+            with torch.no_grad():
+                probs = model(**inputs).logits.softmax(dim=-1)
+                negative_prob = probs[0][0].item()
+            times.append((time.time() - ts) * 1000)
+            y_true.append(s['label'])
+            y_pred.append(1 if negative_prob > 0.6 else 0)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+    del model, tokenizer
+    _free_gpu()
+    return _build_result("CitizenLab-XLM-RoBERTa", dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
 def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> Result:
     from transformers import AutoTokenizer, AutoModelForCausalLM
     model_id   = f"meta-llama/Llama-Guard-3-{variant}"
@@ -369,22 +432,20 @@ def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> 
     )
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
-
     y_true, y_pred, times, cpu_pcts = [], [], [], []
     errors = 0
     proc = psutil.Process()
     t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc=model_name, unit="sample", leave=False):
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc=model_name, unit="sample", leave=False):
         try:
-            prompt   = _llama_prompt(s['text'])
-            inputs   = tokenizer(prompt, return_tensors="pt").to(model.device)
+            prompt  = _llama_guard_prompt(s['text'])
+            inputs  = tokenizer(prompt, return_tensors="pt").to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
                 output = model.generate(**inputs, max_new_tokens=100, pad_token_id=0)
             times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
-            # Decode only the newly generated tokens
             new_tokens = output[0][inputs['input_ids'].shape[1]:]
             response   = tokenizer.decode(new_tokens, skip_special_tokens=True).lower()
             y_true.append(s['label'])
@@ -392,48 +453,50 @@ def test_llama_guard(variant: str, samples: List[Sample], dataset_name: str) -> 
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
-
     del model, tokenizer
     _free_gpu()
     return _build_result(model_name, dataset_name, t0,
                          y_true, y_pred, times, cpu_pcts, errors)
 
 
-def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str) -> Result:
+def test_shieldgemma(variant: str, samples: List[Sample], dataset_name: str,
+                     threshold: float = 0.5) -> Result:
     from transformers import AutoTokenizer, AutoModelForCausalLM
     model_id   = f"google/shieldgemma-{variant}"
     model_name = f"ShieldGemma-{variant}"
-    print(f"  [{model_name}] Loading...")
+    print(f"  [{model_name}] Loading (token-probability mode)...")
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, device_map="auto",
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     )
+    model.eval()
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
-
+    yes_id = tokenizer.encode("Yes", add_special_tokens=False)[-1]
+    no_id  = tokenizer.encode("No",  add_special_tokens=False)[-1]
     y_true, y_pred, times, cpu_pcts = [], [], [], []
     errors = 0
     proc = psutil.Process()
     t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc=model_name, unit="sample", leave=False):
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc=model_name, unit="sample", leave=False):
         try:
-            inputs = tokenizer(s['text'], return_tensors="pt",
-                               max_length=1024, truncation=True).to(model.device)
+            prompt = _shieldgemma_prompt(s['text'])
+            inputs = tokenizer(prompt, return_tensors="pt",
+                               truncation=True, max_length=1024).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                output = model.generate(**inputs, max_new_tokens=50)
+                logits = model(**inputs).logits[0, -1, :]
             times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
-            new_tokens = output[0][inputs['input_ids'].shape[1]:]
-            response   = tokenizer.decode(new_tokens, skip_special_tokens=True).lower()
+            yes_no_probs = torch.softmax(logits[[yes_id, no_id]], dim=0)
+            unsafe_prob  = yes_no_probs[0].item()
             y_true.append(s['label'])
-            y_pred.append(1 if 'unsafe' in response else 0)
+            y_pred.append(1 if unsafe_prob > threshold else 0)
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
-
     del model, tokenizer
     _free_gpu()
     return _build_result(model_name, dataset_name, t0,
@@ -447,34 +510,26 @@ def test_mistral(samples: List[Sample], dataset_name: str) -> Result:
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, device_map="auto",
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     )
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
-
-    def make_prompt(text: str) -> str:
-        return (
-            "[INST] You are a content moderation assistant. "
-            "Classify the following text. Respond ONLY with 'SAFE' or 'UNSAFE'.\n\n"
-            f"Text: {text.strip()}\n\n"
-            "Classification: [/INST]"
-        )
-
     y_true, y_pred, times, cpu_pcts = [], [], [], []
     errors = 0
     proc = psutil.Process()
     t0 = time.time()
-
-    for i, s in tqdm(enumerate(samples), total=len(samples), desc="Mistral-7B", unit="sample", leave=False):
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc="Mistral-7B", unit="sample", leave=False):
         try:
-            prompt = make_prompt(s['text'])
+            prompt = _mistral_prompt(s['text'])
             inputs = tokenizer(prompt, return_tensors="pt",
                                max_length=1024, truncation=True).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
             ts = time.time()
             with torch.no_grad():
-                output = model.generate(**inputs, max_new_tokens=10)
+                output = model.generate(**inputs, max_new_tokens=10,
+                                        pad_token_id=tokenizer.eos_token_id)
             times.append((time.time() - ts) * 1000)
-            cpu_pcts.append(proc.cpu_percent())
             new_tokens = output[0][inputs['input_ids'].shape[1]:]
             response   = tokenizer.decode(new_tokens, skip_special_tokens=True).strip().lower()
             y_true.append(s['label'])
@@ -482,77 +537,176 @@ def test_mistral(samples: List[Sample], dataset_name: str) -> Result:
         except Exception as e:
             errors += 1
             print(f"    Error sample {i}: {e}")
-
     del model, tokenizer
     _free_gpu()
     return _build_result("Mistral-7B-Instruct-v0.3", dataset_name, t0,
                          y_true, y_pred, times, cpu_pcts, errors)
 
 
+# ── LoRA model testers (Phase 2 additions) ────────────────────────────────────
+
+def test_llama_guard_lora(adapter_path: str, samples: List[Sample],
+                          dataset_name: str) -> Result:
+    """Llama Guard 3 1B with LoRA adapter. Inference identical to base model."""
+    from transformers import AutoTokenizer, AutoModelForCausalLM
+    from peft import PeftModel
+
+    base_model_id = "meta-llama/Llama-Guard-3-1B"
+    model_name    = "Llama-Guard-3-1B-LoRA"
+    print(f"  [{model_name}] Loading base model + adapter from {adapter_path}...")
+
+    tokenizer  = AutoTokenizer.from_pretrained(base_model_id)
+    base_model = AutoModelForCausalLM.from_pretrained(
+        base_model_id, device_map="auto",
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    )
+    model = PeftModel.from_pretrained(base_model, adapter_path)
+    model.eval()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    t0   = time.time()
+
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc=model_name, unit="sample", leave=False):
+        try:
+            prompt  = _llama_guard_prompt(s['text'])
+            inputs  = tokenizer(prompt, return_tensors="pt").to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
+            ts = time.time()
+            with torch.no_grad():
+                output = model.generate(**inputs, max_new_tokens=100, pad_token_id=0)
+            times.append((time.time() - ts) * 1000)
+            new_tokens = output[0][inputs['input_ids'].shape[1]:]
+            response   = tokenizer.decode(new_tokens, skip_special_tokens=True).lower()
+            y_true.append(s['label'])
+            y_pred.append(1 if 'unsafe' in response else 0)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+
+    del model, base_model, tokenizer
+    _free_gpu()
+    return _build_result(model_name, dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
+def test_shieldgemma_lora(adapter_path: str, samples: List[Sample],
+                          dataset_name: str, threshold: float = 0.5) -> Result:
+    """ShieldGemma 2B with LoRA adapter. Token-probability scoring, identical to base model."""
+    from transformers import AutoTokenizer, AutoModelForCausalLM
+    from peft import PeftModel
+
+    base_model_id = "google/shieldgemma-2b"
+    model_name    = "ShieldGemma-2b-LoRA"
+    print(f"  [{model_name}] Loading base model + adapter from {adapter_path}...")
+
+    tokenizer  = AutoTokenizer.from_pretrained(base_model_id)
+    base_model = AutoModelForCausalLM.from_pretrained(
+        base_model_id, device_map="auto",
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    )
+    model = PeftModel.from_pretrained(base_model, adapter_path)
+    model.eval()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+    yes_id = tokenizer.encode("Yes", add_special_tokens=False)[-1]
+    no_id  = tokenizer.encode("No",  add_special_tokens=False)[-1]
+
+    y_true, y_pred, times, cpu_pcts = [], [], [], []
+    errors = 0
+    proc = psutil.Process()
+    t0   = time.time()
+
+    for i, s in tqdm(enumerate(samples), total=len(samples),
+                     desc=model_name, unit="sample", leave=False):
+        try:
+            prompt = _shieldgemma_prompt(s['text'])
+            inputs = tokenizer(prompt, return_tensors="pt",
+                               truncation=True, max_length=1024).to(model.device)
+            cpu_pcts.append(proc.cpu_percent())
+            ts = time.time()
+            with torch.no_grad():
+                logits = model(**inputs).logits[0, -1, :]
+            times.append((time.time() - ts) * 1000)
+            yes_no_probs = torch.softmax(logits[[yes_id, no_id]], dim=0)
+            unsafe_prob  = yes_no_probs[0].item()
+            y_true.append(s['label'])
+            y_pred.append(1 if unsafe_prob > threshold else 0)
+        except Exception as e:
+            errors += 1
+            print(f"    Error sample {i}: {e}")
+
+    del model, base_model, tokenizer
+    _free_gpu()
+    return _build_result(model_name, dataset_name, t0,
+                         y_true, y_pred, times, cpu_pcts, errors)
+
+
 # ── Model registry ────────────────────────────────────────────────────────────
 
-# Minimum VRAM (GB) required to run each model fully on GPU.
-# If available VRAM is below this, the model is skipped instead of
-# silently offloading to CPU (which causes near-infinite runtimes).
 MODEL_MIN_VRAM_GB = {
-    'detoxify_multilingual': 2,
-    'detoxify_unbiased':     2,
-    'koalaai':               2,
-    'ethicaleye':            2,
-    'citizenlab':            2,
-    'llama_guard_1b':        4,
-    'llama_guard_8b':       17,
-    'shieldgemma_2b':        6,
-    'shieldgemma_9b':       19,
-    'mistral_7b':           15,
+    'detoxify_multilingual':  2,
+    'detoxify_unbiased':      2,
+    'koalaai':                2,
+    'ethicaleye':             2,
+    'citizenlab':             2,
+    'llama_guard_1b':         4,
+    'llama_guard_8b':        17,
+    'shieldgemma_2b':         6,
+    'shieldgemma_9b':        19,
+    'mistral_7b':            15,
+    # LoRA variants: same VRAM as base (adapters are small)
+    'llama_guard_1b_lora':    4,
+    'shieldgemma_2b_lora':    6,
+}
+
+ALL_MODELS = [
+    'detoxify_multilingual', 'detoxify_unbiased',
+    'koalaai', 'ethicaleye', 'citizenlab',
+    'llama_guard_1b', 'llama_guard_8b',
+    'shieldgemma_2b', 'shieldgemma_9b',
+    'mistral_7b',
+    'llama_guard_1b_lora',
+    'shieldgemma_2b_lora',
+]
+
+MODEL_DISPLAY = {
+    'detoxify_multilingual':  'detoxify-multilingual',
+    'detoxify_unbiased':      'detoxify-unbiased',
+    'koalaai':                'KoalaAI-Text-Moderation',
+    'ethicaleye':             'EthicalEye',
+    'citizenlab':             'CitizenLab-XLM-RoBERTa',
+    'llama_guard_1b':         'Llama-Guard-3-1B',
+    'llama_guard_8b':         'Llama-Guard-3-8B',
+    'shieldgemma_2b':         'ShieldGemma-2b',
+    'shieldgemma_9b':         'ShieldGemma-9b',
+    'mistral_7b':             'Mistral-7B-Instruct-v0.3',
+    'llama_guard_1b_lora':    'Llama-Guard-3-1B-LoRA',
+    'shieldgemma_2b_lora':    'ShieldGemma-2b-LoRA',
 }
 
 
 def check_vram(model_key: str) -> bool:
-    """Returns False (and prints a warning) if GPU has insufficient VRAM."""
     if not torch.cuda.is_available():
-        return True  # CPU-only run, no check needed
+        return True
     available_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
     required_gb  = MODEL_MIN_VRAM_GB.get(model_key, 0)
     if available_gb < required_gb:
         print(f"  SKIPPED [{model_key}]: requires ~{required_gb}GB VRAM, "
-              f"only {available_gb:.1f}GB available. "
-              f"Re-run on a GPU with sufficient VRAM.")
+              f"only {available_gb:.1f}GB available.")
         return False
     return True
 
 
-ALL_MODELS = [
-    'detoxify_multilingual',
-    'detoxify_unbiased',
-    'koalaai',
-    'ethicaleye',
-    'citizenlab',
-    'llama_guard_1b',
-    'llama_guard_8b',
-    'shieldgemma_2b',
-    'shieldgemma_9b',
-    'mistral_7b',
-]
-
-# Maps model key → display name used in filenames and Result.model
-MODEL_DISPLAY = {
-    'detoxify_multilingual': 'detoxify-multilingual',
-    'detoxify_unbiased':     'detoxify-unbiased',
-    'koalaai':               'KoalaAI-Text-Moderation',
-    'ethicaleye':            'EthicalEye',
-    'citizenlab':            'CitizenLab-XLM-RoBERTa',
-    'llama_guard_1b':        'Llama-Guard-3-1B',
-    'llama_guard_8b':        'Llama-Guard-3-8B',
-    'shieldgemma_2b':        'ShieldGemma-2b',
-    'shieldgemma_9b':        'ShieldGemma-9b',
-    'mistral_7b':            'Mistral-7B-Instruct-v0.3',
-}
-
-
 def run_model(model_key: str, samples: List[Sample], dataset_name: str,
-              device: str, threshold: float) -> Optional[Result]:
-    """Dispatch to the appropriate model tester."""
+              device: str, threshold: float,
+              lora_adapter_llama: Optional[str],
+              lora_adapter_gemma: Optional[str]) -> Optional[Result]:
     if not check_vram(model_key):
         return None
     try:
@@ -561,29 +715,31 @@ def run_model(model_key: str, samples: List[Sample], dataset_name: str,
         elif model_key == 'detoxify_unbiased':
             return test_detoxify('unbiased', samples, dataset_name, device, threshold)
         elif model_key == 'koalaai':
-            return test_hf_sequence_classifier(
-                'KoalaAI/Text-Moderation', 'KoalaAI-Text-Moderation',
-                {'H', 'SH', 'V', 'S', 'HR', 'V2', 'S3', 'H2'},
-                samples, dataset_name, threshold,
-            )
+            return test_koalaai(samples, dataset_name, threshold)
         elif model_key == 'ethicaleye':
-            return test_hf_sequence_classifier(
-                'autopilot-ai/EthicalEye', 'EthicalEye',
-                {'Un-Safe'},
-                samples, dataset_name, threshold,
-            )
+            return test_ethicaleye(samples, dataset_name)
         elif model_key == 'citizenlab':
-            return test_citizenlab(samples, dataset_name, threshold)
+            return test_citizenlab(samples, dataset_name)
         elif model_key == 'llama_guard_1b':
             return test_llama_guard('1B', samples, dataset_name)
         elif model_key == 'llama_guard_8b':
             return test_llama_guard('8B', samples, dataset_name)
         elif model_key == 'shieldgemma_2b':
-            return test_shieldgemma('2b', samples, dataset_name)
+            return test_shieldgemma('2b', samples, dataset_name, threshold)
         elif model_key == 'shieldgemma_9b':
-            return test_shieldgemma('9b', samples, dataset_name)
+            return test_shieldgemma('9b', samples, dataset_name, threshold)
         elif model_key == 'mistral_7b':
             return test_mistral(samples, dataset_name)
+        elif model_key == 'llama_guard_1b_lora':
+            if not lora_adapter_llama:
+                print("  SKIPPED [llama_guard_1b_lora]: --lora_adapter_llama not set.")
+                return None
+            return test_llama_guard_lora(lora_adapter_llama, samples, dataset_name)
+        elif model_key == 'shieldgemma_2b_lora':
+            if not lora_adapter_gemma:
+                print("  SKIPPED [shieldgemma_2b_lora]: --lora_adapter_gemma not set.")
+                return None
+            return test_shieldgemma_lora(lora_adapter_gemma, samples, dataset_name, threshold)
         else:
             print(f"  Unknown model key: {model_key}")
             return None
@@ -616,7 +772,7 @@ def already_done(output_dir: Path, dataset: str, model_display: str) -> bool:
 def load_all_results(output_dir: Path) -> List[Result]:
     results = []
     for p in sorted(output_dir.rglob("*.json")):
-        if p.name in ("summary.json",):
+        if p.name == "summary.json":
             continue
         try:
             with open(p) as f:
@@ -626,20 +782,23 @@ def load_all_results(output_dir: Path) -> List[Result]:
     return results
 
 
-def generate_summary(results: List[Result], output_dir: Path):
+def generate_summary(results: List[Result], output_dir: Path,
+                     adapter_meta: Optional[Dict] = None):
     datasets = sorted(set(r.dataset for r in results))
     models   = sorted(set(r.model   for r in results))
 
-    # ── Text summary ──────────────────────────────────────────────────────────
     txt_path = output_dir / "summary.txt"
     with open(txt_path, 'w') as f:
-        f.write("FULL BASELINE EVALUATION SUMMARY\n")
+        f.write("FULL BASELINE + LoRA EVALUATION SUMMARY\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        if adapter_meta:
+            f.write(f"LoRA adapters:\n")
+            for k, v in adapter_meta.items():
+                f.write(f"  {k}: {v}\n")
         f.write("=" * 120 + "\n\n")
         f.write(f"Datasets ({len(datasets)}): {', '.join(datasets)}\n")
         f.write(f"Models   ({len(models)}):   {', '.join(models)}\n\n")
 
-        # Per-dataset performance table
         for ds in datasets:
             ds_results = sorted(
                 [r for r in results if r.dataset == ds],
@@ -647,65 +806,56 @@ def generate_summary(results: List[Result], output_dir: Path):
             )
             if not ds_results:
                 continue
-            n = ds_results[0].num_samples
+            n     = ds_results[0].num_samples
             n_pos = ds_results[0].tp + ds_results[0].fn
             f.write(f"\n{'='*120}\n")
             f.write(f"DATASET: {ds.upper()}  (n={n}, unsafe={n_pos}, safe={n-n_pos})\n")
             f.write(f"{'='*120}\n")
-            hdr = (f"{'Model':<35} {'Acc':>8} {'Prec':>8} {'Rec':>8} {'F1':>8} "
+            hdr = (f"{'Model':<40} {'Acc':>8} {'Prec':>8} {'Rec':>8} {'F1':>8} "
                    f"{'TPR':>8} {'FPR':>8} {'TP':>6} {'FP':>6} {'TN':>6} {'FN':>6} "
                    f"{'Err':>5} {'ms/smp':>8}\n")
             f.write(hdr)
             f.write("-" * 120 + "\n")
             for r in ds_results:
                 f.write(
-                    f"{r.model:<35} {r.accuracy:>8.4f} {r.precision:>8.4f} "
+                    f"{r.model:<40} {r.accuracy:>8.4f} {r.precision:>8.4f} "
                     f"{r.recall:>8.4f} {r.f1:>8.4f} "
                     f"{r.true_positive_rate:>8.4f} {r.false_positive_rate:>8.4f} "
                     f"{r.tp:>6} {r.fp:>6} {r.tn:>6} {r.fn:>6} "
                     f"{r.errors:>5} {r.avg_inference_ms:>8.2f}\n"
                 )
 
-        # F1 matrix across all datasets
         col_w = 16
-        f.write(f"\n\n{'='*120}\n")
-        f.write("F1-SCORE MATRIX\n")
-        f.write(f"{'='*120}\n")
-        header = f"{'Model':<35}" + "".join(f"{d[:col_w-1]:>{col_w}}" for d in datasets)
-        f.write(header + "\n")
-        f.write("-" * len(header) + "\n")
+        f.write(f"\n\n{'='*120}\nF1-SCORE MATRIX\n{'='*120}\n")
+        header = f"{'Model':<40}" + "".join(f"{d[:col_w-1]:>{col_w}}" for d in datasets)
+        f.write(header + "\n" + "-" * len(header) + "\n")
         for m in sorted(models, key=lambda x: -max(
             (r.f1 for r in results if r.model == x), default=0
         )):
-            row = f"{m:<35}"
+            row = f"{m:<40}"
             for ds in datasets:
                 val = next((r.f1 for r in results if r.model == m and r.dataset == ds), None)
                 row += f"{'N/A':>{col_w}}" if val is None else f"{val:>{col_w}.4f}"
             f.write(row + "\n")
 
-        # Energy summary
-        f.write(f"\n\n{'='*120}\n")
-        f.write("ENERGY SUMMARY\n")
-        f.write(f"{'='*120}\n")
-        f.write(f"{'Model':<35} {'Energy (kWh)':>14} {'CO2 (kg)':>12}\n")
-        f.write("-" * 65 + "\n")
+        f.write(f"\n\n{'='*120}\nENERGY SUMMARY\n{'='*120}\n")
+        f.write(f"{'Model':<40} {'Energy (kWh)':>14} {'CO2 (kg)':>12}\n")
+        f.write("-" * 70 + "\n")
         for m in models:
             total_e  = sum(r.energy_kwh for r in results if r.model == m)
             total_co = sum(r.co2_kg     for r in results if r.model == m)
-            f.write(f"{m:<35} {total_e:>14.6f} {total_co:>12.6f}\n")
+            f.write(f"{m:<40} {total_e:>14.6f} {total_co:>12.6f}\n")
         grand_e  = sum(r.energy_kwh for r in results)
         grand_co = sum(r.co2_kg     for r in results)
-        f.write("-" * 65 + "\n")
-        f.write(f"{'TOTAL':<35} {grand_e:>14.6f} {grand_co:>12.6f}\n")
+        f.write(f"{'TOTAL':<40} {grand_e:>14.6f} {grand_co:>12.6f}\n")
 
-    # ── JSON summary ──────────────────────────────────────────────────────────
     json_path = output_dir / "summary.json"
     data = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "num_models": len(models),
-        "num_datasets": len(datasets),
-        "models": models,
-        "datasets": datasets,
+        "version": "lora",
+        "adapter_meta": adapter_meta or {},
+        "num_models": len(models), "num_datasets": len(datasets),
+        "models": models, "datasets": datasets,
         "f1_matrix": {
             m: {ds: next((r.f1 for r in results if r.model == m and r.dataset == ds), None)
                 for ds in datasets}
@@ -729,15 +879,11 @@ ALL_DATASET_KEYS = [
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Full baseline evaluation: all 10 models × all available datasets',
+        description='Full baseline + LoRA evaluation (Phase 2)',
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    # Output
-    parser.add_argument('--output_dir', required=True,
-                        help='Directory to write results into')
-    parser.add_argument('--cache_dir',  default=str(Path.home() / 'datasets/cache'),
-                        help='HuggingFace dataset cache directory')
-    # Local dataset paths
+    parser.add_argument('--output_dir', required=True)
+    parser.add_argument('--cache_dir',  default=str(Path.home() / 'datasets/cache'))
     parser.add_argument('--openai_path',
                         default=str(Path.home() / 'datasets/openai/samples-1680.jsonl'))
     parser.add_argument('--toxigen_path',
@@ -746,31 +892,34 @@ def main():
                         default=str(Path.home() / 'datasets/reddit/balanced/data-en/test-en.csv'))
     parser.add_argument('--reddit_fr_path',
                         default=str(Path.home() / 'datasets/reddit/balanced/data-fr/test-fr.csv'))
-    # Selection
+
+    # LoRA adapter paths
+    parser.add_argument('--lora_adapter_llama', default=None,
+                        help='Path to Llama Guard 3 1B LoRA adapter dir (best/ or final/)')
+    parser.add_argument('--lora_adapter_gemma', default=None,
+                        help='Path to ShieldGemma 2B LoRA adapter dir (best/ or final/)')
+
+    # Held-out test set (produced by finetune_lora.py)
+    parser.add_argument('--test_set_path', default=None,
+                        help='Path to test_set.json saved by finetune_lora.py. '
+                             'When provided, overrides the dataset loader for the matching '
+                             'dataset key so that baseline and LoRA are evaluated on the '
+                             'exact same held-out samples.')
+
     parser.add_argument('--datasets', default='all',
                         help=f'Comma-separated or "all". Keys: {",".join(ALL_DATASET_KEYS)}')
     parser.add_argument('--models',   default='all',
                         help=f'Comma-separated or "all". Keys: {",".join(ALL_MODELS)}')
-    # Sampling limits
-    parser.add_argument('--max_samples',         type=int, default=None,
-                        help='Max samples for HateCheck/OpenAI/Reddit (default: all)')
+    parser.add_argument('--max_samples',         type=int, default=None)
     parser.add_argument('--max_samples_toxigen', type=int, default=5000)
     parser.add_argument('--max_samples_civil',   type=int, default=5000)
-    parser.add_argument('--threshold',           type=float, default=0.5,
-                        help='Toxicity probability threshold (default: 0.5)')
-    # Checkpointing
+    parser.add_argument('--threshold',           type=float, default=0.5)
     parser.add_argument('--no_skip', action='store_true',
-                        help='Rerun evaluations even if result file already exists')
-    # Multiple runs
-    parser.add_argument('--run_id', type=int, default=None,
-                        help='Run ID for statistical analysis (saves to {output_dir}/run_{n}/). '
-                             'Omit for a single unnamed run.')
+                        help='Rerun even if result file already exists')
 
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
-    if args.run_id is not None:
-        output_dir = output_dir / f"run_{args.run_id}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -779,7 +928,23 @@ def main():
         print(f"GPU:    {torch.cuda.get_device_name(0)}")
         print(f"VRAM:   {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
 
-    skip_done   = not args.no_skip
+    if args.lora_adapter_llama:
+        print(f"LoRA adapter (Llama):  {args.lora_adapter_llama}")
+    if args.lora_adapter_gemma:
+        print(f"LoRA adapter (Gemma):  {args.lora_adapter_gemma}")
+
+    # Load test set override if provided
+    test_set_override = None
+    test_set_dataset_key = None
+    if args.test_set_path:
+        with open(args.test_set_path) as f:
+            _ts = json.load(f)
+        test_set_override    = _ts['samples']
+        test_set_dataset_key = _ts['dataset']
+        print(f"Test set override: {args.test_set_path}")
+        print(f"  Dataset: {test_set_dataset_key}  |  n={len(test_set_override)}")
+
+    skip_done    = not args.no_skip
     dataset_keys = (ALL_DATASET_KEYS if args.datasets.strip() == 'all'
                     else [d.strip() for d in args.datasets.split(',')])
     model_keys   = (ALL_MODELS if args.models.strip() == 'all'
@@ -794,12 +959,13 @@ def main():
     pair_idx    = 0
 
     for dataset_key in dataset_keys:
-        print(f"\n{'='*80}")
-        print(f"LOADING DATASET: {dataset_key}")
-        print(f"{'='*80}")
-
+        print(f"\n{'='*80}\nLOADING DATASET: {dataset_key}\n{'='*80}")
         try:
-            if dataset_key == 'hatecheck_fr':
+            # Use the held-out test set when it matches the current dataset
+            if test_set_override is not None and dataset_key == test_set_dataset_key:
+                samples = test_set_override
+                print(f"  Using held-out test set ({len(samples)} samples) from {args.test_set_path}")
+            elif dataset_key == 'hatecheck_fr':
                 samples = load_hatecheck_fr(args.cache_dir, args.max_samples)
             elif dataset_key == 'hatecheck_en':
                 samples = load_hatecheck_en(args.cache_dir, args.max_samples)
@@ -836,24 +1002,39 @@ def main():
                 print("  → Already done, skipping.")
                 continue
 
-            result = run_model(model_key, samples, dataset_key, device, args.threshold)
+            result = run_model(
+                model_key, samples, dataset_key, device, args.threshold,
+                args.lora_adapter_llama, args.lora_adapter_gemma,
+            )
             if result:
                 save_result(result, output_dir)
                 print(f"  Acc={result.accuracy:.4f}  Prec={result.precision:.4f}  "
                       f"Rec={result.recall:.4f}  F1={result.f1:.4f}  "
-                      f"FPR={result.false_positive_rate:.4f}  "
-                      f"Err={result.errors}")
+                      f"FPR={result.false_positive_rate:.4f}  Err={result.errors}")
 
-    # Final summary from all saved results
+    total_runtime = time.time() - experiment_start
+    print(f"\n{'='*80}\nTotal runtime: {fmt_time(total_runtime)}")
+
     print(f"\n{'='*80}\nGenerating summary...\n{'='*80}")
+    adapter_meta = {}
+    if args.lora_adapter_llama:
+        adapter_meta['llama_guard_1b'] = args.lora_adapter_llama
+        meta_path = Path(args.lora_adapter_llama).parent.parent / 'training_meta.json'
+        if meta_path.exists():
+            with open(meta_path) as f:
+                adapter_meta['llama_guard_1b_training'] = json.load(f)
+    if args.lora_adapter_gemma:
+        adapter_meta['shieldgemma_2b'] = args.lora_adapter_gemma
+        meta_path = Path(args.lora_adapter_gemma).parent.parent / 'training_meta.json'
+        if meta_path.exists():
+            with open(meta_path) as f:
+                adapter_meta['shieldgemma_2b_training'] = json.load(f)
+
     all_results = load_all_results(output_dir)
     if all_results:
-        generate_summary(all_results, output_dir)
+        generate_summary(all_results, output_dir, adapter_meta)
     else:
-        print("No results found to summarise.")
-
-    print(f"\nTotal time: {fmt_time(time.time() - experiment_start)}")
-    print(f"Output dir: {output_dir}")
+        print("No results to summarize.")
 
 
 if __name__ == '__main__':

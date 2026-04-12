@@ -182,5 +182,55 @@ private*
 useful_commands.txt
 
 # === LaTeX build files ===
-latexmkrc
+# Core auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
 *.synctex.gz
+*.synctex(busy)
+
+# List of figures / tables / equations
+*.lof
+*.lot
+*.loe
+*.loa
+
+# Bibliography (BibTeX / Biblatex)
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Index
+*.idx
+*.ind
+*.ilg
+
+# Glossaries / acronyms
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.xdy
+
+# Beamer (presentation slides)
+*.nav
+*.snm
+*.vrb
+
+# Minted (code highlighting)
+_minted-*/
+
+# latexmk intermediate files (e.g. pdflatex12345.fls)
+pdflatex*.fls
+
+# Build output directories
+thesis_report/auxiliary/
+thesis_report/auxilary/
+thesis_report/output/

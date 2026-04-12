@@ -1,6 +1,28 @@
 # Results Tracker
 
-Status snapshot as of **2026-03-25**. `run_1/` is now mostly complete (9 models × 7 datasets). See RESULTS_SUMMARY.md for full analysis.
+Status snapshot as of **2026-04-07**.
+
+**Phase 1 complete.** `full_baseline_v3/` has 10 models × 8 datasets × 3 multi-runs (std≤0.01). `hatecheck_analysis/` has all 10 models × EN + FR with v3 methods. See RESULTS_PHASE1_BASELINE.md for full analysis.
+
+**Phase 2 fair eval complete.** `phase2_eval/` contains held-out 20% test set results for LG-1B and SG-2b on FR-Hate and Reddit-FR baselines. LoRA fine-tuning improves FR-Hate F1: LG-1B +0.186 (0.371→0.557), SG-2b +0.121 (0.413→0.534). Gains are precision-driven (TNR up sharply), not recall-driven (TPR essentially flat). See PHASE2_LORA_RESULTS_REPORT.md for full analysis.
+
+---
+
+## Phase 2 Status
+
+| Item | Status | Notes |
+|------|--------|-------|
+| LG-1B × FHS training | ✅ done | best=epoch1, val_loss=0.1903, adapter at `lora_adapters/llama_guard_1b/french_hate_superset/best` |
+| LG-1B × Reddit-FR training | ✅ done | best=epoch1, val_loss=0.3031, adapter at `lora_adapters/llama_guard_1b/reddit_fr/best` |
+| SG-2b × FHS training | ✅ done | best=epoch1, val_loss=0.1862, adapter at `lora_adapters/shieldgemma_2b/french_hate_superset/best` |
+| SG-2b × Reddit-FR training | ❌ failed | Only test_set.json saved, no adapter — needs resubmit with `--epochs 1` |
+| Initial eval on full 8 datasets (FHS adapter) | ✅ done | `full_baseline_lora_french_hate_superset/` — FR-Hate numbers inflated ⚠️ (training data in test set) |
+| **Fair eval on held-out test sets (FR-Hate)** | ✅ **done** | `phase2_eval/french_hate_superset/` — LG-1B: 0.371→0.557 (+0.186), SG-2b: 0.413→0.534 (+0.121) |
+| **Fair eval baseline on Reddit-FR** | ✅ **done** | `phase2_eval/reddit_fr/baseline/` — LG-1B: 0.425, SG-2b: 0.335 |
+| Reddit-FR LoRA adapter fair eval | ❌ pending | LG-1B adapter exists; SG-2b adapter missing. Need to submit separate eval job. |
+| Full 8-dataset eval with LoRA adapters | ❌ pending | HC-FR regression unknown — need to run `run_full_baseline_lora.py` to confirm |
+
+> All 3 training runs overfit after epoch 1 — future retrains should use `--epochs 1`.
 
 ---
 
@@ -20,9 +42,12 @@ Status snapshot as of **2026-03-25**. `run_1/` is now mostly complete (9 models 
 
 ## Current Results State
 
-See **[RESULTS_SUMMARY.md](RESULTS_SUMMARY.md)** for all F1 tables, deployability numbers, and observations.
+See **[RESULTS_PHASE1_BASELINE.md](RESULTS_PHASE1_BASELINE.md)** for all F1 tables, deployability numbers, and observations.
 
-As of 2026-03-25: `run_1/` has 9 models × 7 datasets (all except reddit_fr). Mistral and ShieldGemma missing reddit_en. CitizenLab missing everywhere (torch CVE). reddit_fr missing everywhere.
+As of 2026-03-29: **Phase 1 complete.**
+- `full_baseline_v3/`: 10 models × 8 datasets (flat) + 3 multi-runs (run_1, run_2, run_3) — all complete.
+- `hatecheck_analysis/`: 10 models × HateCheck EN + FR — all complete with v3 inference methods.
+- Primary result path: `code/results/full_baseline_v3/`
 
 ---
 
@@ -101,41 +126,33 @@ rsync -avz --progress alan:~/code/results/ ./code/results/
 
 ---
 
-## What to Do Next (After Results Are In)
+## What to Do Next (Phase 2)
 
-### If multi-run was not submitted yet
-Submit it once the cluster is less crowded — needed for mean ± std statistics:
+**Phase 1 is complete. Phase 2 = LoRA fine-tuning.**
+
+### Fine-tuning candidates (ranked)
+1. **Llama-Guard-3-1B** — best VRAM/accuracy trade-off; native safety tuning format; strong EN/FR baseline (0.816/0.674).
+2. **ShieldGemma-2b** — high accuracy (0.902/0.858), fast (24ms); counter-speech weakness is the target for fine-tuning.
+3. **detoxify-multilingual** — if the goal is minimal VRAM and bilingual support; FR-Hate/Reddit gaps are fine-tuning targets.
+
+### Threshold sensitivity analysis (before fine-tuning)
+ShieldGemma's TPR/TNR imbalance (TPR 0.97, TNR 0.60) may be correctable with a higher threshold (0.6–0.8). Run sweep before committing to fine-tuning:
 ```bash
-sbatch code/slurm_jobs/run_full_baseline_multi.sbatch  # default N_RUNS=3
+python code/run_full_baseline_v3.py \
+    --output_dir ~/code/results/threshold_sweep \
+    --models shieldgemma_2b,shieldgemma_9b \
+    --datasets hatecheck_en,hatecheck_fr \
+    --threshold 0.6  # repeat for 0.7, 0.8
 ```
 
-### If some (model, dataset) pairs are missing
-Check which ones are missing and resubmit — checkpointing skips already-done pairs:
+### Dataset inspection (FR-Hate / Reddit underperformance)
+All models score poorly on FR-Hate and Reddit (best F1 ≈ 0.4). Before fine-tuning on these, check whether the issue is label noise or domain shift:
 ```bash
-sbatch code/slurm_jobs/run_full_baseline.sbatch
+python code/experiments/dataset_experiments/explore_datasets.py
 ```
 
-### If large models (Llama-8B, ShieldGemma-9B, Mistral-7B) are missing
-They were likely skipped by the VRAM guard on a 1080Ti node.
-The a5000 jobs (3788499, 3788500) should cover them — check their logs.
-If they also failed, resubmit specifically:
-```bash
-python ~/code/run_full_baseline.py \
-    --output_dir ~/code/results/full_baseline \
-    --models llama_guard_8b,shieldgemma_9b,mistral_7b \
-    --datasets all \
-    ... (other paths)
-```
-
-### Analysis to do once results are complete
-
-1. **Compare full baseline summary** (`summary.txt`) → identify top models per dataset
-2. **Read HateCheck report** → note which functionalities each model struggles with
-3. **Apply deployability filter** → eliminate models requiring >11GB VRAM for production
-4. **Investigate ShieldGemma** → run threshold sweep (0.1–0.9) before concluding it's broken
-5. **Submit multi-run** → get mean ± std to confirm stability of top candidates
-6. **Aggregate multi-run** → `python code/aggregate_runs.py --results_dir ~/code/results/full_baseline`
-7. **Select models for fine-tuning** → based on above analysis
+### Shareish two-tier architecture evaluation
+Planned: detoxify-multilingual as fast pre-filter, Llama-Guard-3-1B for edge cases. Needs end-to-end evaluation script.
 
 ---
 

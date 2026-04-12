@@ -1,22 +1,22 @@
 #!/bin/bash
-#SBATCH --job-name=full-baseline-multi
+#SBATCH --job-name=full-baseline-v3-multi
 #SBATCH --output=/home/sural/code/logs/full_baseline/%j.out
 #SBATCH --error=/home/sural/code/logs/full_baseline/%j.err
 #SBATCH --time=14-00:00:00
 #SBATCH --partition=a5000
 #SBATCH --gres=gpu:1
-#SBATCH --mem=32G
+#SBATCH --mem=48G
 #SBATCH --cpus-per-task=4
 
-# Full baseline evaluation — multiple runs for statistical analysis
-# Runs the evaluation N_RUNS times, each saved to results/run_1/, run_2/, etc.
-# Aggregate afterward with: python aggregate_runs.py --results_dir $OUTPUT_DIR
+# Full baseline evaluation v3 — multiple runs for mean ± std statistics
+# Aggregate afterward with:
+#   python aggregate_runs.py --results_dir $OUTPUT_DIR
 # Author: Ural Seyfullah
 
-N_RUNS=3   # <-- change this to run more or fewer times
+N_RUNS=3   # <-- change to run more or fewer times
 
 echo "=========================================="
-echo "Full Baseline Evaluation — Multi-Run"
+echo "Full Baseline Evaluation v3 — Multi-Run"
 echo "=========================================="
 echo "Job started : $(date)"
 echo "Job ID      : $SLURM_JOB_ID"
@@ -24,20 +24,17 @@ echo "Node        : $SLURM_NODELIST"
 echo "N_RUNS      : $N_RUNS"
 echo "=========================================="
 
-# ── GPU check ─────────────────────────────────────────────────────────────────
 if ! nvidia-smi &> /dev/null; then
     echo "ERROR: No GPU detected. Exiting."
     exit 1
 fi
 nvidia-smi
 
-# ── Environment ───────────────────────────────────────────────────────────────
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate thesis
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
-OUTPUT_DIR="$HOME/code/results/full_baseline"
-SCRIPT="$HOME/code/run_full_baseline.py"
+OUTPUT_DIR="$HOME/code/results/full_baseline_v3"
+SCRIPT="$HOME/code/phase1_baseline/run_full_baseline_v3.py"
 
 OPENAI_PATH="$HOME/datasets/openai/samples-1680.jsonl"
 TOXIGEN_PATH="$HOME/datasets/toxigen/toxigen_train.jsonl"
@@ -48,7 +45,6 @@ CACHE_DIR="$HOME/datasets/cache"
 mkdir -p "$OUTPUT_DIR"
 mkdir -p "$HOME/code/logs/full_baseline"
 
-# ── Run loop ──────────────────────────────────────────────────────────────────
 for RUN_ID in $(seq 1 $N_RUNS); do
     echo ""
     echo "=========================================="
@@ -72,16 +68,14 @@ for RUN_ID in $(seq 1 $N_RUNS); do
     echo "Run $RUN_ID completed at $(date)"
 done
 
-# ── Aggregate results ─────────────────────────────────────────────────────────
 echo ""
 echo "=========================================="
 echo "Aggregating results across $N_RUNS runs..."
 echo "=========================================="
 
-python "$HOME/code/aggregate_runs.py" \
+python "$HOME/code/shared/aggregate_runs.py" \
     --results_dir "$OUTPUT_DIR"
 
-# ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "=========================================="
 echo "All $N_RUNS runs completed : $(date)"
