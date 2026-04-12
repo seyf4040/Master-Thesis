@@ -181,6 +181,9 @@ private/
 private*
 useful_commands.txt
 
+# Claude Code local settings (machine-specific, auto-managed)
+.claude/settings.local.json
+
 # === LaTeX build files ===
 # Core auxiliary files
 *.aux
