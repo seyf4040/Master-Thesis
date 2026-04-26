@@ -175,8 +175,9 @@ code/datasets/
 .makemd/
 .space/
 
-# Evaluation results (generated output, not source)
+# Evaluation results and scraped datasets (generated output, not source)
 results/
+data/
 
 # Script used to create compilation file
 combine-md.sh
@@ -191,6 +192,7 @@ useful_commands.txt
 
 # === LaTeX build files ===
 # Core auxiliary files
+texput.log
 *.aux
 *.log
 *.out
