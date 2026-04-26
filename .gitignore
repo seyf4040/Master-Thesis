@@ -237,3 +237,6 @@ pdflatex*.fls
 thesis_report/auxiliary/
 thesis_report/auxilary/
 thesis_report/output/
+
+# Thesis report — managed privately via Overleaf, not tracked in git
+thesis_report/
