@@ -170,6 +170,11 @@ cython_debug/
 datasets/
 code/datasets/
 
+# IDE / tool directories
+.vscode/
+.makemd/
+.space/
+
 # Evaluation results (generated output, not source)
 results/
 
