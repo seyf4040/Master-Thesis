@@ -1,6 +1,10 @@
 # Thesis Progress — AI Content Moderation for Shareish
 
-**Last updated:** 2026-04-12 | **Author:** Ural Seyfullah | *ULiège Master's Thesis*
+**Last updated:** 2026-05-03 | **Author:** Ural Seyfullah | *ULiège Master's Thesis*
+
+---
+
+> ⚠️ **Reddit-EN and Reddit-FR results should be interpreted with caution.** Both datasets were originally labeled for *rule-based moderation* — each subreddit enforces its own community rules, which do not map cleanly onto toxicity detection. Low F1 scores on these datasets partly reflect this label mismatch rather than genuine model failure; the models are being evaluated against a different task than the one the labels encode.
 
 ---
 
@@ -9,9 +13,9 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 1 — Baseline evaluation | ✅ Complete | 10 models × 8 datasets × 3 runs |
-| Phase 2 — LoRA fine-tuning | 🔄 Partial | FHS adapters done; Reddit-FR eval + SG-2b retraining pending |
-| Phase 3 — Data collection / generation | 🔜 Not started | Scraping + synthetic data scripts written, not yet run |
-| Phase 4 — Two-tier architecture | 🔜 Not started | Planned: detoxify pre-filter + LoRA-tuned LG-1B |
+| Phase 2 — LoRA fine-tuning | ✅ Complete | SG-2b × Reddit-FR LoRA (F1=0.662) confirmed as Tier 2 model |
+| Phase 3 — Data collection / generation | 🔄 In progress | Track A (1,500 synthetic items) complete; Track B (scrapers) partial |
+| Phase 4 — Two-tier architecture | 🔄 In progress | 7/8 experiments done; 2c-synthetic (epoch 2) confirmed as Tier 1 |
 
 ---
 
@@ -60,13 +64,14 @@ The three models above are the **Phase 2 fine-tuning candidates**.
 
 ### Key Findings
 
-**1. The French/English gap is structural.** Most models perform significantly better in English. KoalaAI is the extreme case (HC-EN 0.694, HC-FR 0.008) — it is effectively an English-only model. Even Mistral-7B, a multilingual model, shows a 0.138 gap (0.921 EN → 0.783 FR), suggesting the safety fine-tuning data is predominantly English.
+**1. The French/English gap is structural.** Most models perform significantly better in English. KoalaAI is the extreme case (HC-EN 0.694, HC-FR 0.008) — it is effectively an English-only model. Even Mistral-7B, a multilingual model, shows a 0.138 gap (0.921 EN → 0.783 FR), suggesting the training data is predominantly English.
 
-**2. ShieldGemma's counter-speech failure is a deployment blocker.** SG-2b flags quoted hate speech as toxic with a 94–95% error rate (`counter_quote_nh` correct-rate: 0.054 FR, 0.006 EN). On Shareish, users who quote a hateful message they received to report it would almost always be silenced. This is the primary target for Phase 2 fine-tuning.
+**2. ShieldGemma's counter-speech failure is concerning.** SG-2b flags quoted hate speech as toxic with a 94–95% error rate (`counter_quote_nh` correct-rate: 0.054 FR, 0.006 EN). On Shareish, users who quote a hateful message they received to report it would almost always be silenced. 
 
 **3. FR-Hate and Reddit-FR are universally hard.** No model exceeds F1=0.45 on FR-Hate and F1=0.41 on Reddit-FR — worse than HateCheck by a large margin. These are the primary fine-tuning targets for Phase 2.
+-> For Reddit-EN and FR: it is explained by the fact that there is a mismatch between dataset purpose and evaluation. Dataset is labeled for rule based moderation (with different set of rules per dataset) while we try to evaluate for toxicity detection.
 
-**4. ShieldGemma-2b is the accuracy/deployability sweet spot** among viable models: highest French F1 (0.858), faster than LG-1B (25 ms vs 33 ms), fits in 5.7 GB. The v3 inference fix (token-probability scoring instead of text generation) was what unlocked it — ShieldGemma appeared broken in earlier evaluation rounds.
+**4. ShieldGemma-2b is the accuracy/deployability sweet spot** among viable models: highest French F1 (0.858), faster than LG-1B (25 ms vs 33 ms), fits in 5.7 GB. 
 
 **5. The two-tier architecture is motivated by complementary strengths.** detoxify-multilingual handles Civil Comments and Reddit-FR well (where LLM-based models are weak), while ShieldGemma-2b / LG-1B handle the HateCheck categories well. No single model dominates all axes.
 
@@ -74,64 +79,90 @@ The three models above are the **Phase 2 fine-tuning candidates**.
 
 ## Phase 2 — LoRA Fine-tuning Results
 
-Models fine-tuned: **Llama-Guard-3-1B** and **ShieldGemma-2b**
-Training data: **French Hate Superset (FHS)** and **Reddit-FR**
-Method: LoRA (r=16, α=32, epoch 1 — all runs overfit after epoch 1)
+**Status:** ✅ Complete (2026-04-20)
+Models fine-tuned: **ShieldGemma-2b** (primary) and **Llama-Guard-3-1B**
+Method: LoRA (r=16, α=32) — all runs overfit after epoch 1; `--epochs 1` confirmed for all adapters.
 
-### Fair Evaluation Results (held-out 20% test set)
+### Summary of All 4 LoRA Experiments
 
-> These are the authoritative numbers — evaluated on a held-out split with no overlap with training data.
+Baselines — LG-1B: FHS F1=0.364 / Reddit-FR F1=0.417 | SG-2b: FHS F1=0.413 / Reddit-FR F1=0.335
 
-| Dataset | Metric | LG-1B baseline | LG-1B + LoRA | Δ | SG-2b baseline | SG-2b + LoRA | Δ |
-|---------|--------|:--------------:|:------------:|:---:|:--------------:|:------------:|:---:|
-| **FR-Hate** | F1 | 0.371 | **0.557** | **+0.186** | 0.413 | **0.534** | **+0.121** |
-| **FR-Hate** | TPR (recall) | 0.532 | 0.493 | −0.039 | 0.420 | 0.413 | −0.007 |
-| **FR-Hate** | TNR (specificity) | 0.591 | **0.915** | **+0.324** | 0.811 | **0.960** | **+0.149** |
-| **Reddit-FR** | F1 | 0.425 | *(not evaluated)* | — | 0.335 | *(not evaluated)* | — |
+| ID | Adapter | Eval set | LG-1B F1 | Δ | SG-2b F1 | Δ | One-line result |
+|----|---------|----------|:---------:|:-:|:---------:|:-:|-----------------|
+| P2-E1 | FHS only | FHS test (n=3,614) | 0.561 | +0.197 | 0.534 | +0.121 | Precision-driven; catastrophic Reddit-FR collapse (LG-1B −0.299, SG-2b −0.237) |
+| **P2-E2** | **Reddit-FR only** | Reddit-FR test (n=1,023) | 0.513 | +0.096 | **0.662** | **+0.327** | **Recall-driven; SG-2b HC-FR regression only −0.021 → Confirmed Tier 2** |
+| P2-E3 | Joint (FHS + Reddit-FR) | Reddit-FR test | 0.573 | +0.156 | 0.632 | +0.297 | Beats FHS-only on both domains; trails Reddit-FR single by −0.030 (SG-2b) |
+| P2-E4 | Balanced joint (1:1) | Reddit-FR test | 0.551 | +0.134 | 0.611 | +0.276 | Balancing hurts both models on both domains; hypothesis disproven |
 
-### What Worked
+### Key Conclusions
 
-Both models genuinely improve on FR-Hate. The gains are **precision-driven**: fine-tuning taught the models which formal French patterns are unambiguously harmful (TNR up sharply), reducing false alarms on safe content without sacrificing much recall.
+**SG-2b × Reddit-FR LoRA (P2-E2, F1=0.662) is the confirmed Tier 2 model.** It is stored at `lora_adapters/shieldgemma_2b/reddit_fr/best/`.
 
-- LG-1B Precision: 0.285 → 0.640 (+0.355)
-- SG-2b Precision: 0.405 → 0.758 (+0.353)
+The gains are **recall-driven**: fine-tuning on Reddit-FR taught the model to catch informal/colloquial hate speech that the baseline systematically missed (+0.327 F1). The small HC-FR regression (−0.021) is an acceptable trade-off.
 
-VRAM footprint is unchanged after LoRA — LG-1B stays at ~3 GB, SG-2b at ~5.7 GB.
-
-### What Didn't Work / Open Questions
-
-**Recall did not improve.** Both models still miss ~50% of hateful content (TPR ≈ 0.49/0.41 post-LoRA). For a content moderation system where missing hate speech is costly, this is a concern. The models learned better precision but not better generalisation to ambiguous cases.
-
-**Implication:** the two-tier architecture becomes even more necessary — detoxify-multilingual handles the recall layer (catches obvious cases), LoRA-adapted LG-1B/SG-2b provides precision on flagged content.
-
-### Pending Phase 2 Items
-
-- [ ] **LG-1B Reddit-FR adapter evaluation** — adapter exists, fair eval not yet submitted
-- [ ] **SG-2b Reddit-FR retraining** — training failed (SLURM timeout); resubmit with `--epochs 1`
-- [ ] **Full 8-dataset eval with LoRA adapters** — HC-FR regression after LoRA is unknown
-- [ ] **SG-2b retrain with lower LR** (`1e-4` instead of `2e-4`) — faster overfitting than LG-1B suggests the learning rate is too high
+The FHS adapter (P2-E1) is useful for formal French test sets but actively harmful on Reddit-like informal content. Joint training dilutes the Reddit-FR signal; balanced joint dilutes both — single-domain Reddit-FR training is the Pareto-optimal choice.
 
 ---
 
 ## Phase 3 — Data Collection & Synthetic Generation
 
-**Status:** Scripts written, not yet run on cluster.
+**Status:** 🔄 In progress
 
-- `scrape_donnons.py` — scrapes donnons.org (French reuse/solidarity platform similar to Shareish) to build a domain-relevant corpus
-- `generate_synthetic_data.py` — uses a generative LLM to produce synthetic hateful/safe examples targeting known model weaknesses (counter-speech, French slurs, obfuscation)
+### Track A — Synthetic French Hate Speech (✅ Complete)
 
-Goal: augment fine-tuning data to address the recall gap identified in Phase 2.
+- 1,500 items generated across 5 HateCheck functionalities targeting known model weaknesses
+- 3/5 functionalities usable as-is; `derog_impl_h` (implicit derogation) and `spell_leet_h` (leet-speak) need manual review before training
+- Pre-processing required: strip `"1.1. "` prefix artifact — `re.sub(r"^\d+\.\d*\s*", "", text)`
+- Data: `~/code/data/synthetic/{functionality}.jsonl`
+
+### Track B — Web Scrapers (Partial)
+
+| Scraper | Status | Collected | Target | Notes |
+|---------|--------|:---------:|:------:|-------|
+| donnons.org | ✅ | 3,238 | 3,400 | 17-category solidarity data; HTML entity issue in location field |
+| donnerie.be | ❌ | 0 | 1,000 | Bug fixed (absolute href); resubmitted 2026-04-17, results pending |
+| 2ememain.be | ❌ | 51 | 800 | Dutch filter + truncated descriptions; scraper needs fix |
+
+**Current class imbalance: 64:1** (3,289 solidarity : 51 commercial) — the content-type classifier cannot be trained yet.
+
+Interim fix: `generate_classifier_data.py` (not yet run on cluster) generates ~300 synthetic commercial examples to reach a minimum viable 2:1 ratio. Minimum viable set: ~1,000 solidarity + ~500 commercial.
 
 ---
 
-## Phase 4 — Two-Tier Architecture (Planned)
+## Phase 4 — Two-Tier Architecture
 
-**Not yet implemented.** The architecture:
+**Status:** 🔄 In progress (7/8 experiments complete)
 
-1. **Detoxify-multilingual** as a fast pre-filter (6 ms, CPU-feasible): clear safe → approve; clear toxic → flag
-2. **LoRA-adapted LG-1B or SG-2b** for uncertain cases (~5–15% of traffic): more accurate decision + explanation
+**Architecture:** Fine-tuned Detoxify-multilingual (Tier 1 fast filter) → SG-2b × Reddit-FR LoRA (Tier 2 specialist for deferred cases)
 
-Expected benefit: ~90% of posts resolved in 6 ms; full LLM inference only on edge cases. Reduces energy cost by 4–7× compared to LLM-only.
+**Evaluation datasets:**
+- **P4-E1 to P4-E6** (F1/T1_FNR in the table below): **511-sample honest holdout from Reddit-FR** — held back from training, seed=42
+- **P4-E7 generalisation eval**: intended 8 datasets, but with caveats — ToxiGen (n=0, loader bug) and OpenAI (hateful=0, loader bug) are effectively missing; Reddit-FR results are contaminated for all fine-tuned models (trained on 80% of the same file); clean signal comes from HC-FR, HC-EN, FHS, Reddit-EN, and CivComm only
+
+### Experiment Results
+
+| ID | Name | F1 (honest) | T1_FNR | One-line result |
+|----|------|:-----------:|:------:|-----------------|
+| P4-E1 | T1 pretrained baseline | 0.616 | 37.6% | Same failure as Detoxify-M baseline; same backbone → same score collapse |
+| P4-E2 | T1 fine-tuned base | 0.626 | 41.7% | Honest FNR 41.7%; bimodal score collapse; 4.4× speed gain |
+| P4-E3 | T1 variant 2a (10 epochs) | 0.615 | 28.5% | Overfits after epoch 2; extra epochs wasted |
+| P4-E4 | T1 variant 2b (soft labels ε=0.05) | 0.619 | 28.3% | T1_FPR drops 23.8%→13.5%; partial distribution fix |
+| **P4-E5** | **T1 variant 2c (synthetic data)** | **0.668** | **25.2%** | **Best: T_high=0.80, HC-FR FNR=7.0% → Currently best performing Tier 1** |
+| P4-E6 | T1 variant 2d (soft + synthetic) | 0.634 | 27.1% | Effects do not stack; worse than 2c; 2c is the ceiling |
+| P4-E7 | Generalisation eval (6 ckpts × 5 valid datasets) | — | 7.0% HC-FR | 2c best on HC-FR/EN; ToxiGen+OpenAI broken (loader bugs); Reddit-FR contaminated |
+| P4-E8 | End-to-end simulation (2c) | ⏳ | — | Pending: `score_two_tier_finetuned.sbatch` with 2c checkpoint |
+
+### Key Conclusions
+
+**2c-synthetic (epoch 2) is currently the optimal Tier 1 model.** Best config: T_low=0.10, T_high=0.75, deferral rate=10.4%, combined latency ~12.7 ms/sample.
+
+This meets the success criterion: F1=0.668 > 0.640 threshold at <30% deferral rate.
+
+Neither Tier 1 variant exceeds Tier 2 alone in raw F1, but the 4× speed advantage is the deployability argument — ~90% of posts resolved at Tier 1 speed (~6 ms), full SG-2b inference only on the deferred ~10%.
+
+The final pending experiment (P4-E8) runs the full end-to-end simulation with the 2c checkpoint to confirm real-world combined F1.
+
+> 💡 **Future direction — LLM-generated evaluation dataset.** The unexpectedly strong 2c results (synthetic data alone closing HC-FR FNR from 45.8% to 7.0%) suggest that LLM-generated data is a viable signal source for both fine-tuning *and* evaluation. This opens the possibility of generating a purpose-built French hate speech dataset via LLM — one where labels directly encode toxicity rather than subreddit rules — to be used as both a training supplement and a cleaner evaluation benchmark. Phase 4 results should ultimately be re-evaluated against such a dataset: the Reddit-FR holdout used throughout is subject to the same label-mismatch caveat established for Reddit results generally.
 
 ---
 
@@ -141,19 +172,22 @@ Expected benefit: ~90% of posts resolved in 6 ms; full LLM inference only on edg
 |---------|-------|--------|
 | Introduction | Motivation, Shareish context, thesis plan | Draft |
 | Chapter 1 | Background — NLP, hate speech, content moderation | Draft |
-| Chapter 2 | Evaluation framework — models, datasets, metrics | Draft |
+| Chapter 2 | Evaluation framework — models, datasets, metrics | In progress |
 | Chapter 3 | Phase 1 baseline results | In progress |
-| Chapter 4 | Data strategy (Phase 2 data + Phase 3) | In progress |
-| Chapter 5 | LoRA fine-tuning (Phase 2) | In progress |
-| Chapter 6 | Conclusions and recommendations | Not started |
+| Chapter 4 | Data strategy (Phase 2 data + Phase 3) | Not started |
+| Chapter 5 | LoRA fine-tuning (Phase 2) | Not started |
+| Chapter 6 | Two-tier architecture (Phase 4) | Not started |
+| Chapter 7 | Conclusions and recommendations | Not started |
 | Appendix | Model cards, full result tables | Not started |
 
 ---
 
 ## Deeper Documentation
 
-For detailed breakdowns, see:
-- `code/docs/RESULTS_PHASE1_BASELINE.md` — full F1 tables, functionality heatmaps, deployability analysis
-- `code/docs/PHASE1_RESULTS_REPORT.md` — visual report with figure descriptions
-- `code/docs/PHASE2_LORA_RESULTS_REPORT.md` — full LoRA training diagnostics and analysis
-- `code/docs/RESULTS_TRACKER.md` — live job/results status and cluster commands
+Phase-level detail lives in the 3-tier doc structure under `code/docs/`:
+
+- `code/docs/phase1/index.md` + `exp_*.md` — Phase 1 baseline experiments and results
+- `code/docs/phase2/index.md` + `exp_*.md` — Phase 2 LoRA fine-tuning experiments
+- `code/docs/phase3/index.md` + `exp_*.md` — Phase 3 data collection and synthetic generation
+- `code/docs/phase4/index.md` + `exp_*.md` — Phase 4 two-tier architecture experiments
+- `code/docs/RESULTS_TRACKER.md` — Live cluster job status and commands
